@@ -11,9 +11,17 @@ dependencies = [
     "fastapi>=0.115.0",
     "uvicorn[standard]>=0.30.0",
     "pydantic>=2.8.0",
+    "pydantic-settings>=2.2.0",
     "sqlalchemy>=2.0.0",
     "psycopg[binary]>=3.1.0",
+    "pgvector>=0.3.5",
 ]
+
+[tool.setuptools.packages.find]
+# Explicitly control which top-level packages are included, to avoid
+# setuptools complaining about multiple packages in a flat layout.
+where = ["."]
+include = ["api*", "models*", "services*", "jobs*", "workflows*", "pipelines*", "migrations*"]
 
 [project.optional-dependencies]
 dev = [
