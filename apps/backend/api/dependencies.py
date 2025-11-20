@@ -5,23 +5,26 @@ Use this module to define common dependency-injected objects,
 such as database sessions, current user, settings, etc.
 """
 
-from collections.abc import AsyncGenerator
+from collections.abc import Generator
 
-# from .config import get_settings
+from apps.backend.models.db import SessionLocal
 
 
-async def get_db() -> AsyncGenerator[None, None]:
+def get_db() -> Generator:
     """
-    Placeholder for a database session dependency.
+    Database session dependency.
 
-    Replace the body of this function with actual DB session creation
-    and teardown when you introduce persistence.
+    Yields a SQLAlchemy session that is closed after the request ends.
+    Use in route signatures as:
+
+        def endpoint(db: Session = Depends(get_db)):
+            ...
     """
-    # db = SessionLocal()
-    # try:
-    #     yield db
-    # finally:
-    #     db.close()
-    yield
+
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 

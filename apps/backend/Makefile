@@ -1,7 +1,7 @@
 PYTHON = uv
 
 .PHONY: help install setup-dev dev lint format test test-cov test-file test-dir test-one clean pre-commit \
-        migrate migrate-create seed db-reset db-reapply docker-build docker-up docker-down docker-logs \
+        db-init migrate migrate-create seed db-reset db-reapply docker-build docker-up docker-down docker-logs \
         docker-shell docker-cleanup docker-cleanup-all
 
 help: ## Show this help message
@@ -57,6 +57,10 @@ clean: ## Clean up generated files
 
 pre-commit: ## Run pre-commit hooks on all files
 	$(PYTHON) run pre-commit run --all-files
+
+# Database bootstrap & migrations
+db-init: ## Create the configured Postgres database if it does not exist
+	$(PYTHON) run python scripts/db_init.py
 
 # Database Migrations (placeholders until Alembic is configured)
 migrate: ## Apply database migrations (requires Alembic setup)
