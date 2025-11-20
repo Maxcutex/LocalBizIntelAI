@@ -16,6 +16,13 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest",
+    "black",
+    "isort",
+    "flake8",
+    "mypy",
+    "bandit",
+    "pre-commit",
+    "alembic",
 ]
 
 [tool.uvicorn]
