@@ -12,6 +12,7 @@ dependencies = [
     "uvicorn[standard]>=0.30.0",
     "pydantic>=2.8.0",
     "pydantic-settings>=2.2.0",
+    "email-validator>=2.1.0",
     "sqlalchemy>=2.0.0",
     "psycopg[binary]>=3.1.0",
     "pgvector>=0.3.5",
@@ -26,6 +27,7 @@ include = ["api*", "models*", "services*", "repositories*", "jobs*", "workflows*
 [project.optional-dependencies]
 dev = [
     "pytest",
+    "httpx",
     "black",
     "isort",
     "flake8",

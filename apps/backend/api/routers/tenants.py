@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, status
+from sqlalchemy.orm import Session
 
+from api.dependencies import CurrentRequestContext, get_current_request_context, get_db
 from services.tenant_service import TenantService
 
 router = APIRouter()
@@ -31,3 +33,18 @@ def create_tenant(tenant_service: TenantService = Depends(get_tenant_service)) -
     Create a new tenant/workspace.
     """
     return {"detail": "Not implemented"}
+
+
+@router.get(
+    "/current",
+    summary="Get current tenant",
+)
+def get_current_tenant(
+    db: Session = Depends(get_db),
+    context: CurrentRequestContext = Depends(get_current_request_context),
+    tenant_service: TenantService = Depends(get_tenant_service),
+) -> dict:
+    """
+    Returns the current tenant based on auth context.
+    """
+    return tenant_service.get_current_tenant(db, context.tenant_id).model_dump()

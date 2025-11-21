@@ -8,6 +8,7 @@ from .routers import (
     health,
     insights,
     markets,
+    me,
     personas,
     reports,
     tenants,
@@ -32,6 +33,7 @@ def create_app() -> FastAPI:
 
     # Routers
     app.include_router(health.router, prefix="/health", tags=["health"])
+    app.include_router(me.router, tags=["auth"])
     app.include_router(auth.router, prefix="/auth", tags=["auth"])
     app.include_router(tenants.router, prefix="/tenants", tags=["tenants"])
     app.include_router(markets.router, prefix="/markets", tags=["markets"])

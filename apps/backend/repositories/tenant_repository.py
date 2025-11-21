@@ -1,8 +1,14 @@
-"""Tenant repository scaffold."""
+"""Tenant repository implementation."""
+
+from uuid import UUID
+
+from sqlalchemy.orm import Session
+
+from models.core import Tenant
 
 
 class TenantRepository:
-    """Data access for `tenants` and `organizations` tables."""
+    """Data access for `tenants` table."""
 
-    def __init__(self) -> None:
-        pass
+    def get_by_id(self, db_session: Session, tenant_id: UUID) -> Tenant | None:
+        return db_session.get(Tenant, tenant_id)
