@@ -2,7 +2,7 @@
 
 import uuid
 
-from sqlalchemy import JSON, Column, ForeignKey, Integer, Numeric, String
+from sqlalchemy import JSON, ForeignKey, Integer, Numeric, String
 from sqlalchemy.dialects.postgresql import TIMESTAMP, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -119,5 +119,3 @@ class OpportunityScore(Base):
     calculated_at: Mapped[str | None] = mapped_column(
         TIMESTAMP(timezone=True), nullable=True
     )
-
-

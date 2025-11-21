@@ -9,5 +9,3 @@ async def health_check() -> dict:
     Simple health-check endpoint for uptime monitoring.
     """
     return {"status": "ok"}
-
-

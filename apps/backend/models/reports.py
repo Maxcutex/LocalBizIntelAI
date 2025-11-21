@@ -2,7 +2,7 @@
 
 import uuid
 
-from sqlalchemy import JSON, Column, ForeignKey, String, Text
+from sqlalchemy import JSON, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import TIMESTAMP, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -40,5 +40,3 @@ class ReportSection(Base):
     section_name: Mapped[str] = mapped_column(String, nullable=False)
     content: Mapped[dict] = mapped_column(JSON)
     created_at: Mapped[str] = mapped_column(TIMESTAMP(timezone=True))
-
-

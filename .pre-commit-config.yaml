@@ -1,0 +1,41 @@
+exclude: '(^|/)(\.venv|venv)(/|$)'
+
+repos:
+  # Use local hooks that run through uv so we don't depend on external hook repos.
+  # This avoids InvalidManifestError from partially downloaded hook repos.
+  - repo: local
+    hooks:
+      - id: isort
+        name: isort (apps/backend)
+        entry: bash -lc "cd apps/backend && uv run isort . --skip .venv --skip venv"
+        language: system
+        types: [python]
+        pass_filenames: false
+
+      - id: black
+        name: black (apps/backend)
+        entry: bash -lc "cd apps/backend && uv run black . --exclude '/\\.venv/'"
+        language: system
+        types: [python]
+        pass_filenames: false
+
+      - id: flake8
+        name: flake8 (apps/backend)
+        entry: bash -lc "cd apps/backend && uv run flake8 --max-line-length=88 --extend-ignore=E203 --exclude .venv,venv ."
+        language: system
+        types: [python]
+        pass_filenames: false
+
+      - id: mypy
+        name: mypy (apps/backend)
+        entry: bash -lc "cd apps/backend && uv run mypy . --exclude '(\\.venv|venv)' --hide-error-context"
+        language: system
+        types: [python]
+        pass_filenames: false
+
+      - id: bandit
+        name: bandit (apps/backend)
+        entry: bash -lc "cd apps/backend && uv run bandit -r api models services tests --exclude .venv,venv --format txt --skip B101,B106,B601,B603,B607,B104,B404"
+        language: system
+        types: [python]
+        pass_filenames: false

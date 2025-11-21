@@ -2,7 +2,7 @@
 
 import uuid
 
-from sqlalchemy import Column, ForeignKey, String, Text
+from sqlalchemy import ForeignKey, String
 from sqlalchemy.dialects.postgresql import TIMESTAMP, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -52,5 +52,3 @@ class Organization(Base):
     name: Mapped[str] = mapped_column(String, nullable=False)
     industry: Mapped[str | None] = mapped_column(String, nullable=True)
     created_at: Mapped[str] = mapped_column(TIMESTAMP(timezone=True))
-
-

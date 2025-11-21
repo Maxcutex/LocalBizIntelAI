@@ -8,11 +8,16 @@ from functools import lru_cache
 from typing import Literal
 
 from pydantic import Field
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+    )
 
     # App metadata
     app_name: str = "LocalBizIntel Backend API"
@@ -20,11 +25,11 @@ class Settings(BaseSettings):
     debug: bool = True
 
     # Postgres configuration (explicit components, not a single URL)
-    pg_host: str = Field("localhost", env="PG_HOST")
-    pg_port: int = Field(5432, env="PG_PORT")
-    pg_database: str = Field("localbizintel", env="PG_DATABASE")
-    pg_user: str = Field("localbizintel", env="PG_USER")
-    pg_password: str = Field("localbizintel", env="PG_PASSWORD")
+    pg_host: str = Field(default="localhost", validation_alias="PG_HOST")
+    pg_port: int = Field(default=5432, validation_alias="PG_PORT")
+    pg_database: str = Field(default="localbizintel", validation_alias="PG_DATABASE")
+    pg_user: str = Field(default="localbizintel", validation_alias="PG_USER")
+    pg_password: str = Field(default="localbizintel", validation_alias="PG_PASSWORD")
 
     @property
     def sqlalchemy_database_uri(self) -> str:
@@ -40,10 +45,6 @@ class Settings(BaseSettings):
             f"@{self.pg_host}:{self.pg_port}/{self.pg_database}"
         )
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
@@ -55,5 +56,3 @@ def get_settings() -> Settings:
     """
 
     return Settings()
-
-

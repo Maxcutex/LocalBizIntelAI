@@ -2,7 +2,7 @@
 
 import uuid
 
-from pgvector.sqlalchemy import Vector
+from pgvector.sqlalchemy import Vector  # type: ignore[import-untyped]
 from sqlalchemy import JSON
 from sqlalchemy.dialects.postgresql import TIMESTAMP, UUID
 from sqlalchemy.orm import Mapped, mapped_column
@@ -21,7 +21,11 @@ class VectorInsight(Base):
     )
     geo_id: Mapped[str] = mapped_column(nullable=False)
     embedding: Mapped[list[float]] = mapped_column(Vector(768), nullable=False)
-    metadata: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    metadata_json: Mapped[dict | None] = mapped_column(
+        "metadata",
+        JSON,
+        nullable=True,
+    )
     created_at: Mapped[str | None] = mapped_column(
         TIMESTAMP(timezone=True), nullable=True
     )
@@ -42,5 +46,3 @@ class AILog(Base):
     created_at: Mapped[str | None] = mapped_column(
         TIMESTAMP(timezone=True), nullable=True
     )
-
-

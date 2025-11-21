@@ -35,5 +35,3 @@ def get_engine():
     """Expose engine for migration tools and advanced use-cases."""
 
     return engine
-
-

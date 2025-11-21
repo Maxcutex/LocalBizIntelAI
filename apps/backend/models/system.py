@@ -35,5 +35,3 @@ class ETLLog(Base):
     created_at: Mapped[str | None] = mapped_column(
         TIMESTAMP(timezone=True), nullable=True
     )
-
-

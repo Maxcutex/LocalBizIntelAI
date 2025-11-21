@@ -7,7 +7,7 @@ such as database sessions, current user, settings, etc.
 
 from collections.abc import Generator
 
-from apps.backend.models.db import SessionLocal
+from models.db import SessionLocal
 
 
 def get_db() -> Generator:
@@ -26,5 +26,3 @@ def get_db() -> Generator:
         yield db
     finally:
         db.close()
-
-

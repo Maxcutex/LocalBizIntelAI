@@ -21,5 +21,3 @@ def client(app) -> Generator[TestClient, None, None]:
 
     with TestClient(app) as c:
         yield c
-
-

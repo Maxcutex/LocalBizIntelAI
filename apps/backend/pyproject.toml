@@ -41,4 +41,20 @@ reload = true
 host = "0.0.0.0"
 port = 8000
 
+[tool.black]
+line-length = 88
+target-version = ["py310"]
+extend-exclude = "(^|/)(\\.venv|venv)(/|$)"
+
+[tool.isort]
+profile = "black"
+line_length = 88
+skip = [".venv", "venv"]
+
+[tool.mypy]
+python_version = "3.10"
+explicit_package_bases = true
+mypy_path = "."
+exclude = "(^|/)(\\.venv|venv)(/|$)"
+
 

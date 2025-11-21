@@ -2,7 +2,7 @@
 
 import uuid
 
-from sqlalchemy import Column, ForeignKey, Integer, Numeric, String
+from sqlalchemy import ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import TIMESTAMP, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -40,5 +40,3 @@ class UsageRecord(Base):
     quantity: Mapped[int] = mapped_column(Integer, nullable=False)
     period_start: Mapped[str] = mapped_column(TIMESTAMP(timezone=True))
     period_end: Mapped[str] = mapped_column(TIMESTAMP(timezone=True))
-
-

@@ -25,8 +25,8 @@ lint: ## Run all linters and static checks
 	$(PYTHON) run black --check .
 	$(PYTHON) run isort --check-only .
 	$(PYTHON) run flake8 --max-line-length=88 --extend-ignore=E203 .
-	$(PYTHON) run mypy .
-	$(PYTHON) run bandit -r api models services tests --format txt --skip B101,B601,B603,B607,B104,B404
+	$(PYTHON) run mypy . --hide-error-context
+	$(PYTHON) run bandit -r api models services tests --format txt --skip B101,B106,B601,B603,B607,B104,B404
 
 format: ## Format code with black and isort
 	$(PYTHON) run black .

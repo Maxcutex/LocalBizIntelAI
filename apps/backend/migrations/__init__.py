@@ -1,3 +1,1 @@
 """Alembic migrations package."""
-
-
