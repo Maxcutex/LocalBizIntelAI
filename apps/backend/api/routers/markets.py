@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
-from api.dependencies import get_db
+from api.dependencies import CurrentRequestContext, get_current_request_context, get_db
 from services.market_service import MarketService
 
 router = APIRouter()
@@ -30,15 +30,18 @@ def list_cities(
 @router.get(
     "/{city}/overview",
     summary="Get market overview",
-    status_code=status.HTTP_501_NOT_IMPLEMENTED,
 )
 def get_market_overview(
-    city: str, market_service: MarketService = Depends(get_market_service)
+    city: str,
+    country: str | None = Query(default=None),
+    db: Session = Depends(get_db),
+    context: CurrentRequestContext = Depends(get_current_request_context),
+    market_service: MarketService = Depends(get_market_service),
 ) -> dict:
     """
     Return a high-level market overview for a city.
     """
-    return {"detail": "Not implemented"}
+    return market_service.get_overview(db, city, country, context.tenant_id)
 
 
 @router.get(
