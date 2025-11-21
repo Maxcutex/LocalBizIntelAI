@@ -21,7 +21,7 @@ dependencies = [
 # Explicitly control which top-level packages are included, to avoid
 # setuptools complaining about multiple packages in a flat layout.
 where = ["."]
-include = ["api*", "models*", "services*", "jobs*", "workflows*", "pipelines*", "migrations*"]
+include = ["api*", "models*", "services*", "repositories*", "jobs*", "workflows*", "pipelines*", "migrations*"]
 
 [project.optional-dependencies]
 dev = [

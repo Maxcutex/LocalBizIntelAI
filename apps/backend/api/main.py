@@ -1,6 +1,17 @@
 from fastapi import FastAPI
 
-from .routers import health
+from .routers import (
+    admin,
+    auth,
+    billing,
+    etl,
+    health,
+    insights,
+    markets,
+    personas,
+    reports,
+    tenants,
+)
 
 
 def create_app() -> FastAPI:
@@ -21,6 +32,15 @@ def create_app() -> FastAPI:
 
     # Routers
     app.include_router(health.router, prefix="/health", tags=["health"])
+    app.include_router(auth.router, prefix="/auth", tags=["auth"])
+    app.include_router(tenants.router, prefix="/tenants", tags=["tenants"])
+    app.include_router(markets.router, prefix="/markets", tags=["markets"])
+    app.include_router(insights.router, prefix="/insights", tags=["insights"])
+    app.include_router(personas.router, prefix="/personas", tags=["personas"])
+    app.include_router(reports.router, prefix="/reports", tags=["reports"])
+    app.include_router(billing.router, prefix="/billing", tags=["billing"])
+    app.include_router(admin.router, prefix="/admin", tags=["admin"])
+    app.include_router(etl.router, prefix="/admin/etl", tags=["admin", "etl"])
 
     return app
 

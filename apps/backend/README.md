@@ -40,4 +40,19 @@ make backend-dev
 > If you prefer plain `uvicorn`, you can still run from `apps/backend` with:
 > `uvicorn api.main:app --reload --host 0.0.0.0 --port 8000`.
 
+#### Available API namespaces (stubs)
+
+These routers are scaffolded and return 501 until implemented:
+
+- `GET /health/`
+- `POST /auth/login`, `GET /auth/me`
+- `GET /tenants/`, `POST /tenants/`
+- `GET /markets/{city}/overview`, `GET /markets/{city}/demographics`
+- `POST /insights/market-summary`, `POST /insights/opportunities`
+- `POST /personas/generate`
+- `POST /reports/feasibility`, `GET /reports/{report_id}`
+- `GET /billing/plans`, `GET /billing/usage`
+- `GET /admin/system/health`
+- `POST /admin/etl/run`
+
 
