@@ -59,3 +59,27 @@ def get_market_demographics(
     """
     demographics = market_service.get_demographics_by_region(db, city, country)
     return {"city": city, "country": country, "demographics": demographics}
+
+
+@router.get(
+    "/{city}/business-density",
+    summary="Get business density",
+)
+def get_business_density(
+    city: str,
+    country: str | None = Query(default=None),
+    business_type: str | None = Query(default=None),
+    db: Session = Depends(get_db),
+    market_service: MarketService = Depends(get_market_service),
+) -> dict:
+    """
+    Return business density information for a city, optionally filtered by business
+    type.
+    """
+    density = market_service.get_business_density(db, city, country, business_type)
+    return {
+        "city": city,
+        "country": country,
+        "business_type": business_type,
+        "business_density": density,
+    }

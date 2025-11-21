@@ -116,3 +116,33 @@ class MarketService:
             }
             for row in demographics_rows
         ]
+
+    def get_business_density(
+        self,
+        db_session: Session,
+        city: str,
+        country: str | None,
+        business_type: str | None,
+    ) -> list[dict]:
+        density_rows = self._business_density_repository.list_by_city_and_type(
+            db_session, city, country, business_type
+        )
+        if not density_rows:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Business density not found for city",
+            )
+
+        return [
+            {
+                "geo_id": row.geo_id,
+                "country": row.country,
+                "city": row.city,
+                "business_type": row.business_type,
+                "count": row.count,
+                "density_score": self._numeric_to_float(row.density_score),
+                "coordinates": row.coordinates,
+                "last_updated": row.last_updated,
+            }
+            for row in density_rows
+        ]
