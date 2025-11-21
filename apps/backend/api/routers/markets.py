@@ -1,5 +1,7 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
+from sqlalchemy.orm import Session
 
+from api.dependencies import get_db
 from services.market_service import MarketService
 
 router = APIRouter()
@@ -7,6 +9,22 @@ router = APIRouter()
 
 def get_market_service() -> MarketService:
     return MarketService()
+
+
+@router.get(
+    "/cities",
+    summary="List cities with market data",
+)
+def list_cities(
+    country: str | None = Query(default=None),
+    db: Session = Depends(get_db),
+    market_service: MarketService = Depends(get_market_service),
+) -> dict:
+    """
+    Return distinct cities where market data exists (optionally filtered by country).
+    """
+    cities = market_service.list_cities(db, country)
+    return {"cities": cities}
 
 
 @router.get(
