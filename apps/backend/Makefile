@@ -22,11 +22,11 @@ dev: ## Start backend API development server
 	$(PYTHON) run uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
 
 lint: ## Run all linters and static checks
-	$(PYTHON) run black --check .
-	$(PYTHON) run isort --check-only .
-	$(PYTHON) run flake8 --max-line-length=88 --extend-ignore=E203 .
-	$(PYTHON) run mypy . --hide-error-context
-	$(PYTHON) run bandit -r api models services tests --format txt --skip B101,B106,B601,B603,B607,B104,B404
+	$(PYTHON) run black --check . --exclude '/(\.venv|venv)/'
+	$(PYTHON) run isort --check-only . --skip .venv --skip venv
+	$(PYTHON) run flake8 --max-line-length=88 --extend-ignore=E203 --exclude .venv,venv .
+	$(PYTHON) run mypy . --exclude '(\.venv|venv)' --hide-error-context
+	$(PYTHON) run bandit -r api models services tests --exclude .venv,venv --format txt --skip B101,B106,B601,B603,B607,B104,B404
 
 format: ## Format code with black and isort
 	$(PYTHON) run black .

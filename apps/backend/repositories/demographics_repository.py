@@ -1,5 +1,7 @@
 """Demographics repository implementation."""
 
+from typing import cast
+
 from sqlalchemy import Select, distinct, func, select
 from sqlalchemy.orm import Session
 
@@ -15,6 +17,16 @@ class DemographicsRepository:
             query = query.where(Demographics.country == country)
         result = db_session.execute(query).scalars().all()
         return [city for city in result if city]
+
+    def list_by_city(
+        self, db_session: Session, city: str, country: str | None
+    ) -> list[Demographics]:
+        query: Select = select(Demographics).where(Demographics.city == city)
+        if country:
+            query = query.where(Demographics.country == country)
+        query = query.order_by(Demographics.geo_id)
+        result = db_session.execute(query).scalars().all()
+        return cast(list[Demographics], list(result))
 
     def get_city_aggregates(
         self, db_session: Session, city: str, country: str | None
