@@ -1,5 +1,7 @@
 """Spending repository implementation."""
 
+from typing import cast
+
 from sqlalchemy import Select, func, select
 from sqlalchemy.orm import Session
 
@@ -24,3 +26,13 @@ class SpendingRepository:
             "avg_monthly_spend": row["avg_monthly_spend"],
             "avg_spend_index": row["avg_spend_index"],
         }
+
+    def get_for_regions(
+        self, db_session: Session, city: str, country: str | None
+    ) -> list[Spending]:
+        query: Select = select(Spending).where(Spending.city == city)
+        if country:
+            query = query.where(Spending.country == country)
+        query = query.order_by(Spending.category)
+        result = db_session.execute(query).scalars().all()
+        return cast(list[Spending], list(result))

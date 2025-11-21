@@ -1,5 +1,7 @@
 """Labour stats repository implementation."""
 
+from typing import cast
+
 from sqlalchemy import Select, func, select
 from sqlalchemy.orm import Session
 
@@ -30,3 +32,13 @@ class LabourStatsRepository:
             "total_job_openings": row["total_job_openings"],
             "avg_labour_force_participation": row["avg_labour_force_participation"],
         }
+
+    def get_for_regions(
+        self, db_session: Session, city: str, country: str | None
+    ) -> list[LabourStats]:
+        query: Select = select(LabourStats).where(LabourStats.city == city)
+        if country:
+            query = query.where(LabourStats.country == country)
+        query = query.order_by(LabourStats.geo_id)
+        result = db_session.execute(query).scalars().all()
+        return cast(list[LabourStats], list(result))

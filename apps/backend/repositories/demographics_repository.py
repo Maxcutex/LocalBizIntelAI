@@ -28,6 +28,11 @@ class DemographicsRepository:
         result = db_session.execute(query).scalars().all()
         return cast(list[Demographics], list(result))
 
+    def get_for_regions(
+        self, db_session: Session, city: str, country: str | None
+    ) -> list[Demographics]:
+        return self.list_by_city(db_session, city, country)
+
     def get_city_aggregates(
         self, db_session: Session, city: str, country: str | None
     ) -> dict:
