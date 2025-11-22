@@ -54,3 +54,30 @@ class ReportJobsRepository:
         db_session.flush()
         db_session.refresh(job)
         return job
+
+    def admin_list(
+        self,
+        db_session: Session,
+        tenant_id: UUID | None = None,
+        status: str | None = None,
+        city: str | None = None,
+        country: str | None = None,
+        business_type: str | None = None,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> list[ReportJob]:
+        query: Select = select(ReportJob)
+        if tenant_id is not None:
+            query = query.where(ReportJob.tenant_id == tenant_id)
+        if status:
+            query = query.where(ReportJob.status == status)
+        if city:
+            query = query.where(ReportJob.city.ilike(f"%{city}%"))
+        if country:
+            query = query.where(ReportJob.country.ilike(f"%{country}%"))
+        if business_type:
+            query = query.where(ReportJob.business_type.ilike(f"%{business_type}%"))
+
+        query = query.order_by(ReportJob.created_at.desc()).limit(limit).offset(offset)
+        result = db_session.execute(query).scalars().all()
+        return cast(list[ReportJob], list(result))
