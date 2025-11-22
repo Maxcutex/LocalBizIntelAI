@@ -13,3 +13,8 @@ class PubSubClient:
         # TODO: Implement real publish. For now this is a no-op stub.
         _ = topic
         _ = message
+
+    def publish_ingestion_job(self, topic: str, message: dict[str, Any]) -> None:
+        # TODO: Implement real publish. For now this is a no-op stub.
+        _ = topic
+        _ = message
