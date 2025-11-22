@@ -40,6 +40,22 @@ make backend-dev
 > If you prefer plain `uvicorn`, you can still run from `apps/backend` with:
 > `uvicorn api.main:app --reload --host 0.0.0.0 --port 8000`.
 
+#### Seeding demo data
+
+To get meaningful responses from `/markets/*`, `/insights/*`, and `/reports/*` locally, seed the database with sample data for Toronto and New York City:
+
+```bash
+cd apps/backend
+
+# Ensure migrations are applied, then seed
+make seed
+
+# Re-seed while also clearing demo report jobs
+uv run python scripts/seed.py --reset
+```
+
+The seed script refreshes city-level market data for the demo cities each run, and uses a reusable `Demo Tenant` with two users.
+
 #### Available API namespaces (stubs)
 
 These routers are scaffolded and return 501 until implemented:
