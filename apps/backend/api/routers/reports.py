@@ -1,8 +1,16 @@
-from fastapi import APIRouter, Depends, status
+from uuid import UUID
+
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from api.dependencies import CurrentRequestContext, get_current_request_context, get_db
-from api.schemas.reports import FeasibilityReportRequest, FeasibilityReportResponse
+from api.schemas.reports import (
+    FeasibilityReportRequest,
+    FeasibilityReportResponse,
+    ReportGetResponse,
+    ReportJobRead,
+    ReportsListResponse,
+)
 from services.report_service import ReportService
 
 router = APIRouter()
@@ -35,14 +43,32 @@ def create_feasibility_report(
 
 
 @router.get(
+    "",
+    summary="List report jobs for tenant",
+)
+def list_reports(
+    db: Session = Depends(get_db),
+    context: CurrentRequestContext = Depends(get_current_request_context),
+    report_service: ReportService = Depends(get_report_service),
+) -> ReportsListResponse:
+    jobs = report_service.list_reports(db, context.tenant_id)
+    return ReportsListResponse(
+        reports=[ReportJobRead.model_validate(job) for job in jobs]
+    )
+
+
+@router.get(
     "/{report_id}",
     summary="Get report job status",
-    status_code=status.HTTP_501_NOT_IMPLEMENTED,
 )
 def get_report_status(
-    report_id: str, report_service: ReportService = Depends(get_report_service)
-) -> dict:
+    report_id: UUID,
+    db: Session = Depends(get_db),
+    context: CurrentRequestContext = Depends(get_current_request_context),
+    report_service: ReportService = Depends(get_report_service),
+) -> ReportGetResponse:
     """
     Get current status and URL (when ready) for a report job.
     """
-    return {"detail": "Not implemented"}
+    job = report_service.get_report(db, report_id, context.tenant_id)
+    return ReportGetResponse(report=ReportJobRead.model_validate(job))

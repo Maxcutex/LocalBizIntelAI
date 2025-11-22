@@ -60,3 +60,18 @@ class ReportService:
         )
 
         return {"job_id": str(job.id), "status": job.status}
+
+    def list_reports(self, db_session: Session, tenant_id: UUID) -> list[Any]:
+        jobs = self._report_jobs_repository.list_by_tenant(db_session, tenant_id)
+        return jobs
+
+    def get_report(self, db_session: Session, report_id: UUID, tenant_id: UUID) -> Any:
+        job = self._report_jobs_repository.get_for_tenant(
+            db_session, report_id, tenant_id
+        )
+        if job is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Report not found",
+            )
+        return job
