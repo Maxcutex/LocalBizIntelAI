@@ -4,6 +4,7 @@ Application configuration module.
 Central place for environment-driven configuration using Pydantic.
 """
 
+import json
 from functools import lru_cache
 from typing import Literal
 
@@ -25,12 +26,47 @@ class Settings(BaseSettings):
     environment: Literal["local", "dev", "staging", "prod"] = "local"
     debug: bool = True
 
+    # JWT / auth settings
+    jwt_secret_key: str = Field(default="change-me", validation_alias="JWT_SECRET_KEY")
+    jwt_algorithm: str = Field(default="HS256", validation_alias="JWT_ALGORITHM")
+    jwt_issuer: str = Field(default="localbizintel", validation_alias="JWT_ISSUER")
+    jwt_audience: str = Field(
+        default="localbizintel-clients", validation_alias="JWT_AUDIENCE"
+    )
+    jwt_access_token_ttl_min: int = Field(
+        default=30, validation_alias="JWT_ACCESS_TOKEN_TTL_MIN"
+    )
+
+    cors_allowed_origins_raw: str | None = Field(
+        default=None, validation_alias="CORS_ALLOWED_ORIGINS"
+    )
+
     # Postgres configuration (explicit components, not a single URL)
     pg_host: str = Field(default="localhost", validation_alias="PG_HOST")
     pg_port: int = Field(default=5432, validation_alias="PG_PORT")
     pg_database: str = Field(default="localbizintel", validation_alias="PG_DATABASE")
     pg_user: str = Field(default="localbizintel", validation_alias="PG_USER")
     pg_password: str = Field(default="localbizintel", validation_alias="PG_PASSWORD")
+
+    @property
+    def cors_allowed_origins(self) -> list[str]:
+        raw_value = self.cors_allowed_origins_raw
+        if raw_value is None:
+            return []
+
+        stripped = raw_value.strip()
+        if not stripped:
+            return []
+
+        if stripped.startswith("["):
+            try:
+                parsed = json.loads(stripped)
+                if isinstance(parsed, list):
+                    return [str(item).strip() for item in parsed if str(item).strip()]
+            except json.JSONDecodeError:
+                pass
+
+        return [origin.strip() for origin in stripped.split(",") if origin.strip()]
 
     @property
     def sqlalchemy_database_uri(self) -> str:

@@ -26,9 +26,16 @@ def list_users(
     limit: int = Query(default=100, ge=1, le=500),
     offset: int = Query(default=0, ge=0),
     db: Session = Depends(get_db),
-    _context=Depends(get_current_request_context),
+    context=Depends(get_current_request_context),
     admin_service: AdminService = Depends(get_admin_service),
 ) -> AdminUsersListResponse:
+    if context.role != "ADMIN":
+        from fastapi import HTTPException, status
+
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin role required",
+        )
     users = admin_service.list_users(db, email, role, tenant_id, limit, offset)
     return AdminUsersListResponse(
         users=[UserRead.model_validate(user) for user in users]
@@ -45,9 +52,16 @@ def list_tenants(
     limit: int = Query(default=100, ge=1, le=500),
     offset: int = Query(default=0, ge=0),
     db: Session = Depends(get_db),
-    _context=Depends(get_current_request_context),
+    context=Depends(get_current_request_context),
     admin_service: AdminService = Depends(get_admin_service),
 ) -> AdminTenantsListResponse:
+    if context.role != "ADMIN":
+        from fastapi import HTTPException, status
+
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin role required",
+        )
     tenants = admin_service.list_tenants(db, name, plan, limit, offset)
     return AdminTenantsListResponse(
         tenants=[TenantRead.model_validate(tenant) for tenant in tenants]

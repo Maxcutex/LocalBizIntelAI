@@ -36,7 +36,9 @@ def test_admin_list_users_success():
             return []
 
     def override_context():
-        return CurrentRequestContext(user_id=uuid4(), tenant_id=expected_tenant_id)
+        return CurrentRequestContext(
+            user_id=uuid4(), tenant_id=expected_tenant_id, role="ADMIN"
+        )
 
     app.dependency_overrides[get_db] = override_db
     app.dependency_overrides[get_current_request_context] = override_context
@@ -71,7 +73,9 @@ def test_admin_list_tenants_success():
             ]
 
     def override_context():
-        return CurrentRequestContext(user_id=uuid4(), tenant_id=expected_tenant_id)
+        return CurrentRequestContext(
+            user_id=uuid4(), tenant_id=expected_tenant_id, role="ADMIN"
+        )
 
     app.dependency_overrides[get_db] = override_db
     app.dependency_overrides[get_current_request_context] = override_context
