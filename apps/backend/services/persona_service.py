@@ -7,6 +7,7 @@ from uuid import UUID
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
+from api.config import get_settings
 from repositories.demographics_repository import DemographicsRepository
 from repositories.labour_stats_repository import LabourStatsRepository
 from repositories.spending_repository import SpendingRepository
@@ -30,7 +31,7 @@ class PersonaService:
         self._labour_stats_repository = (
             labour_stats_repository or LabourStatsRepository()
         )
-        self._ai_engine_client = ai_engine_client or AiEngineClient()
+        self._ai_engine_client = ai_engine_client or AiEngineClient(get_settings())
 
     @staticmethod
     def _numeric_to_float(value: Any | None) -> float | None:

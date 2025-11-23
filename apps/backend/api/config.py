@@ -41,6 +41,11 @@ class Settings(BaseSettings):
         default=None, validation_alias="CORS_ALLOWED_ORIGINS"
     )
 
+    # OpenAI / LLM settings
+    openai_api_key: str | None = Field(default=None, validation_alias="OPENAI_API_KEY")
+    openai_model: str = Field(default="gpt-4o-mini", validation_alias="OPENAI_MODEL")
+    openai_timeout_s: float = Field(default=25.0, validation_alias="OPENAI_TIMEOUT_S")
+
     # Postgres configuration (explicit components, not a single URL)
     pg_host: str = Field(default="localhost", validation_alias="PG_HOST")
     pg_port: int = Field(default=5432, validation_alias="PG_PORT")

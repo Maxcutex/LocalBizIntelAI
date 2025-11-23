@@ -72,3 +72,38 @@ def test_find_opportunities_raises_404_when_empty():
         )
 
     assert exc_info.value.status_code == 404
+
+
+def test_find_opportunities_sorts_and_falls_back_when_ai_fails():
+    class FakeOpportunityRepository:
+        def list_by_city_and_business_type(
+            self, db_session, city, country, business_type
+        ):
+            return [
+                FakeOpportunityRow("accra-low", 0.3, 0.2),
+                FakeOpportunityRow("accra-high", 0.9, 0.5),
+            ]
+
+    class FailingAiClient:
+        def generate_opportunity_commentary(self, ranked_regions):
+            raise RuntimeError("boom")
+
+    service = InsightService(
+        opportunity_scores_repository=FakeOpportunityRepository(),
+        ai_engine_client=FailingAiClient(),
+    )
+
+    result = service.find_opportunities(
+        db_session=None,
+        city="Accra",
+        business_type="retail",
+        constraints=None,
+        country=None,
+        tenant_id=uuid4(),
+    )
+
+    assert [r["geo_id"] for r in result["opportunities"]] == [
+        "accra-high",
+        "accra-low",
+    ]
+    assert "commentary" in result["ai_commentary"]

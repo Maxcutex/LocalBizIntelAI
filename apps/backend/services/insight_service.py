@@ -7,6 +7,7 @@ from uuid import UUID
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
+from api.config import get_settings
 from repositories.demographics_repository import DemographicsRepository
 from repositories.labour_stats_repository import LabourStatsRepository
 from repositories.opportunity_scores_repository import OpportunityScoresRepository
@@ -35,7 +36,7 @@ class InsightService:
         self._opportunity_scores_repository = (
             opportunity_scores_repository or OpportunityScoresRepository()
         )
-        self._ai_engine_client = ai_engine_client or AiEngineClient()
+        self._ai_engine_client = ai_engine_client or AiEngineClient(get_settings())
 
     @staticmethod
     def _numeric_to_float(value: Any | None) -> float | None:
@@ -181,9 +182,20 @@ class InsightService:
                 detail="No opportunities match constraints",
             )
 
-        ai_commentary = self._ai_engine_client.generate_opportunity_commentary(
-            ranked_regions
+        ranked_regions.sort(
+            key=lambda region: region.get("composite_score") or 0.0,
+            reverse=True,
         )
+
+        try:
+            ai_commentary = self._ai_engine_client.generate_opportunity_commentary(
+                ranked_regions
+            )
+        except Exception:
+            ai_commentary = {
+                "commentary": "AI commentary unavailable at the moment.",
+                "regions": ranked_regions,
+            }
 
         # tenant_id accepted for future tenant scoping, unused for now.
         return {

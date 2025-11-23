@@ -145,11 +145,21 @@ def build_seed_records(
                     )
                 )
 
-            for business_type, demand, supply, competition, composite in [
+            for (
+                business_type,
+                base_demand,
+                base_supply,
+                base_competition,
+                base_composite,
+            ) in [
                 ("restaurant", 0.78, 0.62, 0.55, 0.70),
                 ("grocery", 0.66, 0.58, 0.60, 0.62),
                 ("salon", 0.59, 0.46, 0.43, 0.56),
             ]:
+                demand = base_demand + (region_index * 0.03)
+                supply = base_supply + (region_index * 0.02)
+                competition = base_competition + (region_index * 0.01)
+                composite = base_composite + (region_index * 0.03)
                 opportunity_rows.append(
                     OpportunityScore(
                         tenant_id=None,
