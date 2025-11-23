@@ -16,13 +16,13 @@ class BillingService:
 
     def __init__(
         self,
-        billing_repository: BillingRepository | None = None,
-        usage_repository: UsageRepository | None = None,
-        stripe_client: StripeClient | None = None,
+        billing_repository: BillingRepository,
+        usage_repository: UsageRepository,
+        stripe_client: StripeClient,
     ) -> None:
-        self._billing_repository = billing_repository or BillingRepository()
-        self._usage_repository = usage_repository or UsageRepository()
-        self._stripe_client = stripe_client or StripeClient()
+        self._billing_repository = billing_repository
+        self._usage_repository = usage_repository
+        self._stripe_client = stripe_client
 
     def check_report_quota(self, db_session: Session, tenant_id: UUID) -> bool:
         """

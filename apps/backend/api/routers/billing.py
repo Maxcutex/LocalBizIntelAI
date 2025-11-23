@@ -7,13 +7,20 @@ from api.schemas.billing import (
     CheckoutSessionRequest,
     CheckoutSessionResponse,
 )
+from repositories.billing_repository import BillingRepository
+from repositories.usage_repository import UsageRepository
 from services.billing_service import BillingService
+from services.stripe_client import StripeClient
 
 router = APIRouter()
 
 
 def get_billing_service() -> BillingService:
-    return BillingService()
+    return BillingService(
+        billing_repository=BillingRepository(),
+        usage_repository=UsageRepository(),
+        stripe_client=StripeClient(),
+    )
 
 
 @router.get(

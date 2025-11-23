@@ -29,10 +29,17 @@ def test_generate_market_summary_merges_stats_and_ai():
             assert payload["city"] == "Accra"
             return {"summary": "ai"}
 
+    class DummyOpportunityRepository:
+        def list_by_city_and_business_type(
+            self, db_session, city, country, business_type
+        ):
+            raise AssertionError("not used")
+
     service = InsightService(
         demographics_repository=FakeDemographicsRepository(),
         spending_repository=FakeSpendingRepository(),
         labour_stats_repository=FakeLabourStatsRepository(),
+        opportunity_scores_repository=DummyOpportunityRepository(),
         ai_engine_client=FakeAiClient(),
     )
 
@@ -62,10 +69,22 @@ def test_generate_market_summary_raises_404_when_no_data():
         def get_for_regions(self, db_session, city, country):
             return []
 
+    class DummyOpportunityRepository:
+        def list_by_city_and_business_type(
+            self, db_session, city, country, business_type
+        ):
+            raise AssertionError("not used")
+
+    class DummyAiClient:
+        def generate_market_summary(self, payload):
+            raise AssertionError("not used")
+
     service = InsightService(
         demographics_repository=EmptyDemographicsRepository(),
         spending_repository=EmptySpendingRepository(),
         labour_stats_repository=EmptyLabourStatsRepository(),
+        opportunity_scores_repository=DummyOpportunityRepository(),
+        ai_engine_client=DummyAiClient(),
     )
 
     with pytest.raises(HTTPException) as exc_info:

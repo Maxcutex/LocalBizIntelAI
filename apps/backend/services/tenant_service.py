@@ -12,8 +12,8 @@ from repositories.tenant_repository import TenantRepository
 class TenantService:
     """Manages tenants, organizations, memberships, and plan context."""
 
-    def __init__(self, tenant_repository: TenantRepository | None = None) -> None:
-        self._tenant_repository = tenant_repository or TenantRepository()
+    def __init__(self, tenant_repository: TenantRepository) -> None:
+        self._tenant_repository = tenant_repository
 
     def get_current_tenant(self, db_session: Session, tenant_id: UUID) -> TenantRead:
         tenant = self._tenant_repository.get_by_id(db_session, tenant_id)

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
+from api.config import get_settings
 from api.dependencies import CurrentRequestContext, get_current_request_context, get_db
 from api.schemas.insights import (
     MarketSummaryRequest,
@@ -8,13 +9,25 @@ from api.schemas.insights import (
     OpportunitiesRequest,
     OpportunitiesResponse,
 )
+from repositories.demographics_repository import DemographicsRepository
+from repositories.labour_stats_repository import LabourStatsRepository
+from repositories.opportunity_scores_repository import OpportunityScoresRepository
+from repositories.spending_repository import SpendingRepository
+from services.ai_engine_client import AiEngineClient
 from services.insight_service import InsightService
 
 router = APIRouter()
 
 
 def get_insight_service() -> InsightService:
-    return InsightService()
+    ai_engine_client = AiEngineClient(get_settings())
+    return InsightService(
+        demographics_repository=DemographicsRepository(),
+        spending_repository=SpendingRepository(),
+        labour_stats_repository=LabourStatsRepository(),
+        opportunity_scores_repository=OpportunityScoresRepository(),
+        ai_engine_client=ai_engine_client,
+    )
 
 
 @router.post(

@@ -14,13 +14,22 @@ from api.schemas.admin import (
 )
 from api.schemas.core import TenantRead, UserRead
 from api.schemas.reports import ReportJobRead
+from repositories.data_freshness_repository import DataFreshnessRepository
+from repositories.report_jobs_repository import ReportJobsRepository
+from repositories.tenant_repository import TenantRepository
+from repositories.user_repository import UserRepository
 from services.admin_service import AdminService
 
 router = APIRouter()
 
 
 def get_admin_service() -> AdminService:
-    return AdminService()
+    return AdminService(
+        user_repository=UserRepository(),
+        tenant_repository=TenantRepository(),
+        data_freshness_repository=DataFreshnessRepository(),
+        report_jobs_repository=ReportJobsRepository(),
+    )
 
 
 @router.get(

@@ -1,15 +1,26 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
+from api.config import get_settings
 from api.dependencies import CurrentRequestContext, get_current_request_context, get_db
 from api.schemas.personas import PersonaGenerateRequest, PersonaGenerateResponse
+from repositories.demographics_repository import DemographicsRepository
+from repositories.labour_stats_repository import LabourStatsRepository
+from repositories.spending_repository import SpendingRepository
+from services.ai_engine_client import AiEngineClient
 from services.persona_service import PersonaService
 
 router = APIRouter()
 
 
 def get_persona_service() -> PersonaService:
-    return PersonaService()
+    ai_engine_client = AiEngineClient(get_settings())
+    return PersonaService(
+        demographics_repository=DemographicsRepository(),
+        spending_repository=SpendingRepository(),
+        labour_stats_repository=LabourStatsRepository(),
+        ai_engine_client=ai_engine_client,
+    )
 
 
 @router.post(

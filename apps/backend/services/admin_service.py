@@ -15,17 +15,15 @@ class AdminService:
 
     def __init__(
         self,
-        user_repository: UserRepository | None = None,
-        tenant_repository: TenantRepository | None = None,
-        data_freshness_repository: DataFreshnessRepository | None = None,
-        report_jobs_repository: ReportJobsRepository | None = None,
+        user_repository: UserRepository,
+        tenant_repository: TenantRepository,
+        data_freshness_repository: DataFreshnessRepository,
+        report_jobs_repository: ReportJobsRepository,
     ) -> None:
-        self._user_repository = user_repository or UserRepository()
-        self._tenant_repository = tenant_repository or TenantRepository()
-        self._data_freshness_repository = (
-            data_freshness_repository or DataFreshnessRepository()
-        )
-        self._report_jobs_repository = report_jobs_repository or ReportJobsRepository()
+        self._user_repository = user_repository
+        self._tenant_repository = tenant_repository
+        self._data_freshness_repository = data_freshness_repository
+        self._report_jobs_repository = report_jobs_repository
 
     def list_users(
         self,

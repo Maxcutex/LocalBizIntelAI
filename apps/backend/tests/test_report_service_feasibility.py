@@ -54,7 +54,21 @@ def test_create_feasibility_report_raises_when_quota_exceeded():
         def check_report_quota(self, db_session, tenant_id):
             return False
 
-    service = ReportService(billing_service=FakeBillingService())
+    class DummyJobsRepository:
+        def create_pending_job(
+            self, db_session, tenant_id, city, country, business_type
+        ):
+            raise AssertionError("should not be called")
+
+    class DummyPubSubClient:
+        def publish_report_job(self, topic, message):
+            raise AssertionError("should not be called")
+
+    service = ReportService(
+        report_jobs_repository=DummyJobsRepository(),
+        billing_service=FakeBillingService(),
+        pubsub_client=DummyPubSubClient(),
+    )
 
     with pytest.raises(HTTPException) as exc_info:
         service.create_feasibility_report(

@@ -17,13 +17,13 @@ class ReportService:
 
     def __init__(
         self,
-        report_jobs_repository: ReportJobsRepository | None = None,
-        billing_service: BillingService | None = None,
-        pubsub_client: PubSubClient | None = None,
+        report_jobs_repository: ReportJobsRepository,
+        billing_service: BillingService,
+        pubsub_client: PubSubClient,
     ) -> None:
-        self._report_jobs_repository = report_jobs_repository or ReportJobsRepository()
-        self._billing_service = billing_service or BillingService()
-        self._pubsub_client = pubsub_client or PubSubClient()
+        self._report_jobs_repository = report_jobs_repository
+        self._billing_service = billing_service
+        self._pubsub_client = pubsub_client
 
     def create_feasibility_report(
         self,

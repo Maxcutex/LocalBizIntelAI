@@ -18,9 +18,14 @@ def test_get_plan_and_usage_returns_none_plan_when_no_account():
             assert tenant_id is not None
             return expected_usage
 
+    class DummyStripeClient:
+        def create_checkout_session(self, tenant_id: str, target_plan: str):
+            return {}
+
     service = BillingService(
         billing_repository=FakeBillingRepository(),
         usage_repository=FakeUsageRepository(),
+        stripe_client=DummyStripeClient(),
     )
 
     result = service.get_plan_and_usage(db_session=None, tenant_id=uuid4())
@@ -43,9 +48,14 @@ def test_get_plan_and_usage_returns_plan_and_status_when_account_exists():
         def get_current_usage(self, db_session, tenant_id):
             return {"reports_this_month": 5}
 
+    class DummyStripeClient:
+        def create_checkout_session(self, tenant_id: str, target_plan: str):
+            return {}
+
     service = BillingService(
         billing_repository=FakeBillingRepository(),
         usage_repository=FakeUsageRepository(),
+        stripe_client=DummyStripeClient(),
     )
 
     result = service.get_plan_and_usage(db_session=None, tenant_id=expected_tenant_id)
@@ -55,7 +65,23 @@ def test_get_plan_and_usage_returns_plan_and_status_when_account_exists():
 
 
 def test_create_checkout_session_raises_400_when_target_plan_empty():
-    service = BillingService()
+    class DummyBillingRepository:
+        def get_billing_account(self, db_session, tenant_id):
+            return None
+
+    class DummyUsageRepository:
+        def get_current_usage(self, db_session, tenant_id):
+            return {}
+
+    class DummyStripeClient:
+        def create_checkout_session(self, tenant_id: str, target_plan: str):
+            return {}
+
+    service = BillingService(
+        billing_repository=DummyBillingRepository(),
+        usage_repository=DummyUsageRepository(),
+        stripe_client=DummyStripeClient(),
+    )
     with pytest.raises(HTTPException) as exc_info:
         service.create_checkout_session(
             db_session=None, tenant_id=uuid4(), target_plan=""
@@ -72,7 +98,19 @@ def test_create_checkout_session_calls_stripe_client():
             assert target_plan == "starter"
             return {"checkout_session_id": "cs_test"}
 
-    service = BillingService(stripe_client=FakeStripeClient())
+    class DummyBillingRepository:
+        def get_billing_account(self, db_session, tenant_id):
+            return None
+
+    class DummyUsageRepository:
+        def get_current_usage(self, db_session, tenant_id):
+            return {}
+
+    service = BillingService(
+        billing_repository=DummyBillingRepository(),
+        usage_repository=DummyUsageRepository(),
+        stripe_client=FakeStripeClient(),
+    )
     result = service.create_checkout_session(
         db_session=None, tenant_id=expected_tenant_id, target_plan="starter"
     )

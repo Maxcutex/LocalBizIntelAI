@@ -2,13 +2,14 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from api.dependencies import CurrentRequestContext, get_current_request_context, get_db
+from repositories.tenant_repository import TenantRepository
 from services.tenant_service import TenantService
 
 router = APIRouter()
 
 
 def get_tenant_service() -> TenantService:
-    return TenantService()
+    return TenantService(tenant_repository=TenantRepository())
 
 
 @router.get(

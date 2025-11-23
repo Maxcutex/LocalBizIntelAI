@@ -51,10 +51,15 @@ def test_generate_personas_raises_404_when_no_data():
         def get_for_regions(self, db_session, city, country):
             return []
 
+    class DummyAiClient:
+        def generate_personas(self, input_payload):
+            return {"headline": "unused", "personas": []}
+
     service = PersonaService(
         demographics_repository=EmptyRepository(),
         spending_repository=EmptyRepository(),
         labour_stats_repository=EmptyRepository(),
+        ai_engine_client=DummyAiClient(),
     )
 
     with pytest.raises(HTTPException) as exc_info:

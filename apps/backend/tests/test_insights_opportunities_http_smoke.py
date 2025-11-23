@@ -46,7 +46,22 @@ def test_opportunities_http_smoke_real_service_orders_and_includes_ai():
         return CurrentRequestContext(user_id=uuid4(), tenant_id=expected_tenant_id)
 
     def override_insight_service():
+        class DummyDemographicsRepository:
+            def get_for_regions(self, db_session, city, country):
+                return []
+
+        class DummySpendingRepository:
+            def get_for_regions(self, db_session, city, country):
+                return []
+
+        class DummyLabourStatsRepository:
+            def get_for_regions(self, db_session, city, country):
+                return []
+
         return InsightService(
+            demographics_repository=DummyDemographicsRepository(),
+            spending_repository=DummySpendingRepository(),
+            labour_stats_repository=DummyLabourStatsRepository(),
             opportunity_scores_repository=FakeOpportunityRepository(),
             ai_engine_client=FakeAiClient(),
         )

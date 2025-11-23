@@ -2,13 +2,22 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from api.dependencies import CurrentRequestContext, get_current_request_context, get_db
+from repositories.business_density_repository import BusinessDensityRepository
+from repositories.demographics_repository import DemographicsRepository
+from repositories.labour_stats_repository import LabourStatsRepository
+from repositories.spending_repository import SpendingRepository
 from services.market_service import MarketService
 
 router = APIRouter()
 
 
 def get_market_service() -> MarketService:
-    return MarketService()
+    return MarketService(
+        demographics_repository=DemographicsRepository(),
+        business_density_repository=BusinessDensityRepository(),
+        spending_repository=SpendingRepository(),
+        labour_stats_repository=LabourStatsRepository(),
+    )
 
 
 @router.get(

@@ -26,7 +26,36 @@ def test_get_demographics_by_region_maps_rows():
         def list_by_city(self, db_session, city, country):
             return [FakeDemographicsRow()]
 
-    service = MarketService(demographics_repository=FakeDemographicsRepository())
+    class DummyBusinessDensityRepository:
+        def distinct_cities(self, db_session, country):
+            raise AssertionError("not used")
+
+        def list_by_city_and_type(self, db_session, city, country, business_type):
+            raise AssertionError("not used")
+
+        def get_summary(self, db_session, city, country):
+            raise AssertionError("not used")
+
+    class DummySpendingRepository:
+        def get_for_regions(self, db_session, city, country):
+            raise AssertionError("not used")
+
+        def get_city_aggregates(self, db_session, city, country):
+            raise AssertionError("not used")
+
+    class DummyLabourStatsRepository:
+        def get_for_regions(self, db_session, city, country):
+            raise AssertionError("not used")
+
+        def get_city_aggregates(self, db_session, city, country):
+            raise AssertionError("not used")
+
+    service = MarketService(
+        demographics_repository=FakeDemographicsRepository(),
+        business_density_repository=DummyBusinessDensityRepository(),
+        spending_repository=DummySpendingRepository(),
+        labour_stats_repository=DummyLabourStatsRepository(),
+    )
     result = service.get_demographics_by_region(None, "Accra", None)
 
     assert result[0]["geo_id"] == "accra-1"
@@ -38,7 +67,36 @@ def test_get_demographics_by_region_raises_404_when_empty():
         def list_by_city(self, db_session, city, country):
             return []
 
-    service = MarketService(demographics_repository=FakeDemographicsRepository())
+    class DummyBusinessDensityRepository:
+        def distinct_cities(self, db_session, country):
+            raise AssertionError("not used")
+
+        def list_by_city_and_type(self, db_session, city, country, business_type):
+            raise AssertionError("not used")
+
+        def get_summary(self, db_session, city, country):
+            raise AssertionError("not used")
+
+    class DummySpendingRepository:
+        def get_for_regions(self, db_session, city, country):
+            raise AssertionError("not used")
+
+        def get_city_aggregates(self, db_session, city, country):
+            raise AssertionError("not used")
+
+    class DummyLabourStatsRepository:
+        def get_for_regions(self, db_session, city, country):
+            raise AssertionError("not used")
+
+        def get_city_aggregates(self, db_session, city, country):
+            raise AssertionError("not used")
+
+    service = MarketService(
+        demographics_repository=FakeDemographicsRepository(),
+        business_density_repository=DummyBusinessDensityRepository(),
+        spending_repository=DummySpendingRepository(),
+        labour_stats_repository=DummyLabourStatsRepository(),
+    )
 
     with pytest.raises(HTTPException) as exc_info:
         service.get_demographics_by_region(None, "Accra", None)

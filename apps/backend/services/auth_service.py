@@ -15,11 +15,11 @@ class AuthService:
 
     def __init__(
         self,
-        user_repository: UserRepository | None = None,
-        tenant_repository: TenantRepository | None = None,
+        user_repository: UserRepository,
+        tenant_repository: TenantRepository,
     ) -> None:
-        self._user_repository = user_repository or UserRepository()
-        self._tenant_repository = tenant_repository or TenantRepository()
+        self._user_repository = user_repository
+        self._tenant_repository = tenant_repository
 
     def get_current_user_profile(self, db_session: Session, user_id: UUID) -> dict:
         user = self._user_repository.get_by_id(db_session, user_id)

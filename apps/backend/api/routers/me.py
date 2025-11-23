@@ -2,13 +2,18 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from api.dependencies import CurrentRequestContext, get_current_request_context, get_db
+from repositories.tenant_repository import TenantRepository
+from repositories.user_repository import UserRepository
 from services.auth_service import AuthService
 
 router = APIRouter()
 
 
 def get_auth_service() -> AuthService:
-    return AuthService()
+    return AuthService(
+        user_repository=UserRepository(),
+        tenant_repository=TenantRepository(),
+    )
 
 
 @router.get(

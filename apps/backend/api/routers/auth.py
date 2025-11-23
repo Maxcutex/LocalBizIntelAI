@@ -5,13 +5,18 @@ from api.config import get_settings
 from api.dependencies import CurrentRequestContext, get_current_request_context, get_db
 from api.schemas.auth import DevLoginRequest, TokenResponse
 from api.security.jwt import create_access_token
+from repositories.tenant_repository import TenantRepository
+from repositories.user_repository import UserRepository
 from services.auth_service import AuthService
 
 router = APIRouter()
 
 
 def get_auth_service() -> AuthService:
-    return AuthService()
+    return AuthService(
+        user_repository=UserRepository(),
+        tenant_repository=TenantRepository(),
+    )
 
 
 @router.post(

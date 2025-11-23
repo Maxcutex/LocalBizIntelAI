@@ -24,21 +24,15 @@ class MarketService:
 
     def __init__(
         self,
-        demographics_repository: DemographicsRepository | None = None,
-        business_density_repository: BusinessDensityRepository | None = None,
-        spending_repository: SpendingRepository | None = None,
-        labour_stats_repository: LabourStatsRepository | None = None,
+        demographics_repository: DemographicsRepository,
+        business_density_repository: BusinessDensityRepository,
+        spending_repository: SpendingRepository,
+        labour_stats_repository: LabourStatsRepository,
     ) -> None:
-        self._demographics_repository = (
-            demographics_repository or DemographicsRepository()
-        )
-        self._business_density_repository = (
-            business_density_repository or BusinessDensityRepository()
-        )
-        self._spending_repository = spending_repository or SpendingRepository()
-        self._labour_stats_repository = (
-            labour_stats_repository or LabourStatsRepository()
-        )
+        self._demographics_repository = demographics_repository
+        self._business_density_repository = business_density_repository
+        self._spending_repository = spending_repository
+        self._labour_stats_repository = labour_stats_repository
 
     def list_cities(self, db_session: Session, country: str | None) -> list[str]:
         demographics_cities = self._demographics_repository.distinct_cities(

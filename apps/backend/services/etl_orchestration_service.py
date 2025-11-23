@@ -12,8 +12,8 @@ from services.pubsub_client import PubSubClient
 class ETLOrchestrationService:
     """Triggers and monitors ETL workflows from admin endpoints."""
 
-    def __init__(self, pubsub_client: PubSubClient | None = None) -> None:
-        self._pubsub_client = pubsub_client or PubSubClient()
+    def __init__(self, pubsub_client: PubSubClient) -> None:
+        self._pubsub_client = pubsub_client
 
     def trigger_adhoc_etl(
         self,

@@ -34,7 +34,22 @@ def test_find_opportunities_applies_constraints_and_ranks():
             assert len(ranked_regions) == 1
             return {"commentary": "ai"}
 
+    class DummyDemographicsRepository:
+        def get_for_regions(self, db_session, city, country):
+            return []
+
+    class DummySpendingRepository:
+        def get_for_regions(self, db_session, city, country):
+            return []
+
+    class DummyLabourStatsRepository:
+        def get_for_regions(self, db_session, city, country):
+            return []
+
     service = InsightService(
+        demographics_repository=DummyDemographicsRepository(),
+        spending_repository=DummySpendingRepository(),
+        labour_stats_repository=DummyLabourStatsRepository(),
         opportunity_scores_repository=FakeOpportunityRepository(),
         ai_engine_client=FakeAiClient(),
     )
@@ -60,7 +75,29 @@ def test_find_opportunities_raises_404_when_empty():
         ):
             return []
 
-    service = InsightService(opportunity_scores_repository=EmptyOpportunityRepository())
+    class DummyDemographicsRepository:
+        def get_for_regions(self, db_session, city, country):
+            return []
+
+    class DummySpendingRepository:
+        def get_for_regions(self, db_session, city, country):
+            return []
+
+    class DummyLabourStatsRepository:
+        def get_for_regions(self, db_session, city, country):
+            return []
+
+    class DummyAiClient:
+        def generate_opportunity_commentary(self, ranked_regions):
+            return {"commentary": "unused"}
+
+    service = InsightService(
+        demographics_repository=DummyDemographicsRepository(),
+        spending_repository=DummySpendingRepository(),
+        labour_stats_repository=DummyLabourStatsRepository(),
+        opportunity_scores_repository=EmptyOpportunityRepository(),
+        ai_engine_client=DummyAiClient(),
+    )
 
     with pytest.raises(HTTPException) as exc_info:
         service.find_opportunities(
@@ -89,7 +126,22 @@ def test_find_opportunities_sorts_and_falls_back_when_ai_fails():
         def generate_opportunity_commentary(self, ranked_regions):
             raise RuntimeError("boom")
 
+    class DummyDemographicsRepository:
+        def get_for_regions(self, db_session, city, country):
+            return []
+
+    class DummySpendingRepository:
+        def get_for_regions(self, db_session, city, country):
+            return []
+
+    class DummyLabourStatsRepository:
+        def get_for_regions(self, db_session, city, country):
+            return []
+
     service = InsightService(
+        demographics_repository=DummyDemographicsRepository(),
+        spending_repository=DummySpendingRepository(),
+        labour_stats_repository=DummyLabourStatsRepository(),
         opportunity_scores_repository=FakeOpportunityRepository(),
         ai_engine_client=FailingAiClient(),
     )
