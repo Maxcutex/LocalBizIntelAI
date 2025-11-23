@@ -121,6 +121,7 @@ class InsightService:
                 "spending": spending_payload,
                 "labour_stats": labour_payload,
             },
+            "stats_used": payload,
             "ai_summary": ai_summary,
         }
 
@@ -203,5 +204,10 @@ class InsightService:
             "country": country,
             "business_type": business_type,
             "opportunities": ranked_regions,
+            "stats_used": {
+                "business_type": business_type,
+                "constraints": constraints,
+                "ranked_regions": ranked_regions,
+            },
             "ai_commentary": ai_commentary,
         }

@@ -50,6 +50,7 @@ def test_find_opportunities_applies_constraints_and_ranks():
 
     assert [r["geo_id"] for r in result["opportunities"]] == ["accra-1"]
     assert result["ai_commentary"]["commentary"] == "ai"
+    assert "stats_used" in result
 
 
 def test_find_opportunities_raises_404_when_empty():

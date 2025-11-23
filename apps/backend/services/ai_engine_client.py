@@ -71,7 +71,30 @@ class AiEngineClient:
         parsed = json.loads(content)
         if not isinstance(parsed, dict):
             return {}
-        return parsed
+
+        sanitized = self._strip_numeric_values(parsed)
+        return sanitized
+
+    @staticmethod
+    def _strip_numeric_values(value: Any) -> Any:
+        """
+        Ensure LLM outputs do not introduce new numeric facts.
+
+        We allow numbers only from our DB outputs. Since the LLM response
+        is constrained to narrative JSON (strings + lists), any numeric leaf
+        value is removed to avoid hallucinated stats.
+        """
+
+        if isinstance(value, dict):
+            return {
+                key: AiEngineClient._strip_numeric_values(item)
+                for key, item in value.items()
+            }
+        if isinstance(value, list):
+            return [AiEngineClient._strip_numeric_values(item) for item in value]
+        if isinstance(value, (int, float)):
+            return None
+        return value
 
     def generate_market_summary(self, payload: dict[str, Any]) -> dict[str, Any]:
         if self._openai_client is None:

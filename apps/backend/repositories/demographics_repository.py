@@ -1,6 +1,7 @@
 """Demographics repository implementation."""
 
-from typing import cast
+from datetime import datetime
+from typing import Any, cast
 
 from sqlalchemy import Select, distinct, func, select
 from sqlalchemy.orm import Session
@@ -52,3 +53,63 @@ class DemographicsRepository:
             "household_size_avg": row["household_size_avg"],
             "immigration_ratio": row["immigration_ratio"],
         }
+
+    def upsert_many(
+        self,
+        db_session: Session,
+        rows: list[dict[str, Any]],
+        last_updated: datetime,
+    ) -> int:
+        """
+        Insert or update demographics rows keyed by (geo_id, city, country).
+
+        Returns number of rows inserted/updated.
+        """
+
+        affected_rows = 0
+        last_updated_value = last_updated.isoformat()
+        for input_row in rows:
+            geo_id = str(input_row["geo_id"])
+            city = str(input_row["city"])
+            country = str(input_row["country"])
+
+            existing = (
+                db_session.execute(
+                    select(Demographics).where(
+                        Demographics.geo_id == geo_id,
+                        Demographics.city == city,
+                        Demographics.country == country,
+                    )
+                )
+                .scalars()
+                .first()
+            )
+
+            if existing:
+                for field_name, field_value in input_row.items():
+                    if field_name in {"geo_id", "city", "country", "tenant_id"}:
+                        continue
+                    setattr(existing, field_name, field_value)
+                existing.last_updated = last_updated_value
+            else:
+                db_session.add(
+                    Demographics(
+                        tenant_id=input_row.get("tenant_id"),
+                        geo_id=geo_id,
+                        city=city,
+                        country=country,
+                        population_total=input_row.get("population_total", 0),
+                        median_income=input_row.get("median_income", 0),
+                        age_distribution=input_row.get("age_distribution"),
+                        education_levels=input_row.get("education_levels"),
+                        household_size_avg=input_row.get("household_size_avg"),
+                        immigration_ratio=input_row.get("immigration_ratio"),
+                        coordinates=input_row.get("coordinates"),
+                        last_updated=last_updated_value,
+                    )
+                )
+
+            affected_rows += 1
+
+        db_session.flush()
+        return affected_rows

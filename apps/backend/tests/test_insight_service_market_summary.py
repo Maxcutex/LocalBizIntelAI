@@ -46,6 +46,7 @@ def test_generate_market_summary_merges_stats_and_ai():
 
     assert result["city"] == "Accra"
     assert result["ai_summary"] == {"summary": "ai"}
+    assert "stats_used" in result
 
 
 def test_generate_market_summary_raises_404_when_no_data():

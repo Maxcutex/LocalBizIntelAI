@@ -15,6 +15,7 @@ class MarketSummaryResponse(BaseModel):
     city: str
     country: str | None
     stats: dict[str, Any]
+    stats_used: dict[str, Any]
     ai_summary: dict[str, Any]
 
 
@@ -30,4 +31,5 @@ class OpportunitiesResponse(BaseModel):
     country: str | None
     business_type: str | None
     opportunities: list[dict[str, Any]]
+    stats_used: dict[str, Any]
     ai_commentary: dict[str, Any]

@@ -33,6 +33,7 @@ def test_generate_market_summary_success():
                 "city": city,
                 "country": country,
                 "stats": {},
+                "stats_used": {"city": city, "country": country, "regions": regions},
                 "ai_summary": {"summary": "ok"},
             }
 

@@ -36,6 +36,10 @@ def test_generate_opportunities_success():
                 "country": country,
                 "business_type": business_type,
                 "opportunities": [{"geo_id": "accra-1", "composite_score": 0.9}],
+                "stats_used": {
+                    "business_type": business_type,
+                    "constraints": constraints,
+                },
                 "ai_commentary": {"commentary": "ok"},
             }
 
