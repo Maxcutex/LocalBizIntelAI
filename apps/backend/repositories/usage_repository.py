@@ -13,6 +13,7 @@ class UsageRepository:
     """Data access for usage records."""
 
     def get_current_usage(self, db_session: Session, tenant_id: UUID) -> dict[str, Any]:
+        """Return current usage totals by metric for a tenant."""
         query: Select = (
             select(
                 UsageRecord.metric,

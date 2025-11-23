@@ -1,3 +1,5 @@
+"""Insight-generation routes (market summary and opportunity finder)."""
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
@@ -21,6 +23,7 @@ router = APIRouter()
 
 
 def get_insight_service() -> InsightService:
+    """Construct an `InsightService` with concrete repositories and AI client."""
     ai_engine_client = AiEngineClient(get_settings())
     return InsightService(
         InsightServiceDependencies(
@@ -45,6 +48,15 @@ def generate_market_summary(
 ) -> MarketSummaryResponse:
     """
     Orchestrate market data + AI-engine to generate a narrative summary.
+
+    Example request:
+
+        POST /insights/market-summary
+        {
+          "city": "Toronto",
+          "country": "CA",
+          "regions": ["toronto-downtown"]
+        }
     """
     result = insight_service.generate_market_summary(
         db_session=db,
@@ -68,6 +80,16 @@ def generate_opportunities(
 ) -> OpportunitiesResponse:
     """
     Return ranked opportunities with AI explanations.
+
+    Example request:
+
+        POST /insights/opportunities
+        {
+          "city": "Toronto",
+          "country": "CA",
+          "business_type": "restaurant",
+          "constraints": { "min_composite_score": 0.6 }
+        }
     """
     result = insight_service.find_opportunities(
         db_session=db,

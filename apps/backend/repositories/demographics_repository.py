@@ -13,6 +13,7 @@ class DemographicsRepository:
     """Data access for `demographics` table."""
 
     def distinct_cities(self, db_session: Session, country: str | None) -> list[str]:
+        """Return distinct city names with demographics rows, optionally filtered."""
         query: Select = select(distinct(Demographics.city)).order_by(Demographics.city)
         if country:
             query = query.where(Demographics.country == country)
@@ -22,6 +23,7 @@ class DemographicsRepository:
     def list_by_city(
         self, db_session: Session, city: str, country: str | None
     ) -> list[Demographics]:
+        """List demographics rows for all regions in a city."""
         query: Select = select(Demographics).where(Demographics.city == city)
         if country:
             query = query.where(Demographics.country == country)
@@ -32,11 +34,13 @@ class DemographicsRepository:
     def get_for_regions(
         self, db_session: Session, city: str, country: str | None
     ) -> list[Demographics]:
+        """Alias for `list_by_city`; services may filter by `geo_id` downstream."""
         return self.list_by_city(db_session, city, country)
 
     def get_city_aggregates(
         self, db_session: Session, city: str, country: str | None
     ) -> dict:
+        """Compute per-city aggregates (population, median income, etc.)."""
         query: Select = select(
             func.sum(Demographics.population_total).label("population_total"),
             func.avg(Demographics.median_income).label("median_income"),

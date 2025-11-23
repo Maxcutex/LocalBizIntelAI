@@ -1,3 +1,5 @@
+"""Health check routes for uptime monitoring and load balancers."""
+
 from fastapi import APIRouter
 
 router = APIRouter()

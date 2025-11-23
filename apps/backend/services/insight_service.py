@@ -37,6 +37,12 @@ class InsightService:
         tenant_id: UUID,
         regions: list[str] | None = None,
     ) -> dict:
+        """
+        Generate a market summary for a city/regions by combining stats with AI.
+
+        Pulls demographics, spending, and labour stats from repositories, builds a
+        grounded payload, and asks the AI engine for the narrative summary.
+        """
         demographics_rows = self._demographics_repository.get_for_regions(
             db_session, city, country
         )
@@ -119,6 +125,12 @@ class InsightService:
         country: str | None,
         tenant_id: UUID,
     ) -> dict:
+        """
+        Return ranked opportunity regions for a city and optional business type.
+
+        Applies optional numeric constraints to DB-sourced scores, sorts by
+        composite score, and augments results with AI commentary.
+        """
         rows = self._opportunity_scores_repository.list_by_city_and_business_type(
             db_session, city, country, business_type
         )

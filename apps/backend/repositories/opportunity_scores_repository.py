@@ -18,6 +18,7 @@ class OpportunityScoresRepository:
         country: str | None,
         business_type: str | None,
     ) -> list[OpportunityScore]:
+        """List opportunity score rows for a city and optional business type."""
         query: Select = select(OpportunityScore).where(OpportunityScore.city == city)
         if country:
             query = query.where(OpportunityScore.country == country)

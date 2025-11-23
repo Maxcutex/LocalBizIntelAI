@@ -29,6 +29,7 @@ class MarketService:
         self._labour_stats_repository = dependencies.labour_stats_repository
 
     def list_cities(self, db_session: Session, country: str | None) -> list[str]:
+        """List distinct cities with any market data, optionally filtered by country."""
         demographics_cities = self._demographics_repository.distinct_cities(
             db_session, country
         )
@@ -53,6 +54,15 @@ class MarketService:
         country: str | None,
         tenant_id: UUID,
     ) -> dict:
+        """
+        Aggregate per-city market summaries across datasets.
+
+        Args:
+            db_session: SQLAlchemy session.
+            city: City name (as stored in datasets).
+            country: Optional country code.
+            tenant_id: Tenant scope (reserved for future RLS).
+        """
         demographics_summary = self._demographics_repository.get_city_aggregates(
             db_session, city, country
         )
@@ -79,6 +89,11 @@ class MarketService:
     def get_demographics_by_region(
         self, db_session: Session, city: str, country: str | None
     ) -> list[dict]:
+        """
+        Return demographics rows for all regions in a city.
+
+        Raises 404 if no demographics exist for the city/country.
+        """
         demographics_rows = self._demographics_repository.list_by_city(
             db_session, city, country
         )
@@ -112,6 +127,11 @@ class MarketService:
         country: str | None,
         business_type: str | None,
     ) -> list[dict]:
+        """
+        Return business density rows for a city, optionally filtered by business type.
+
+        Raises 404 if no density rows exist for the query.
+        """
         density_rows = self._business_density_repository.list_by_city_and_type(
             db_session, city, country, business_type
         )

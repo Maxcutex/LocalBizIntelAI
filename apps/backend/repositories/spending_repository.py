@@ -14,6 +14,7 @@ class SpendingRepository:
     def get_city_aggregates(
         self, db_session: Session, city: str, country: str | None
     ) -> dict:
+        """Compute average spend and spend index for a city."""
         query: Select = select(
             func.avg(Spending.avg_monthly_spend).label("avg_monthly_spend"),
             func.avg(Spending.spend_index).label("avg_spend_index"),
@@ -30,6 +31,7 @@ class SpendingRepository:
     def get_for_regions(
         self, db_session: Session, city: str, country: str | None
     ) -> list[Spending]:
+        """List spending rows by category for all regions in a city."""
         query: Select = select(Spending).where(Spending.city == city)
         if country:
             query = query.where(Spending.country == country)

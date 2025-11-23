@@ -1,3 +1,5 @@
+"""Authentication routes (dev login + current user profile)."""
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
@@ -14,6 +16,7 @@ router = APIRouter()
 
 
 def get_auth_service() -> AuthService:
+    """Construct an `AuthService` with concrete repositories for request DI."""
     return AuthService(
         AuthServiceDependencies(
             user_repository=UserRepository(),
@@ -32,6 +35,17 @@ def login(
 ) -> TokenResponse:
     """
     Temporary dev login that issues an access token.
+
+    This endpoint accepts a development-only payload and returns a JWT.
+
+    Example request:
+
+        POST /auth/login
+        {
+          "user_id": "<uuid>",
+          "tenant_id": "<uuid>",
+          "role": "ADMIN"
+        }
 
     TODO: Replace with real email/password authentication when password fields
     and refresh tokens are implemented.
@@ -57,6 +71,9 @@ def get_current_user(
     auth_service: AuthService = Depends(get_auth_service),
 ) -> dict:
     """
-    Returns the current user's profile and tenant context.
+    Return the current user's profile and tenant context.
+
+    Example:
+        `GET /auth/me`
     """
     return auth_service.get_current_user_profile(db, context.user_id)

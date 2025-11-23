@@ -14,6 +14,7 @@ class LabourStatsRepository:
     def get_city_aggregates(
         self, db_session: Session, city: str, country: str | None
     ) -> dict:
+        """Compute city-level labour aggregates (unemployment, salaries, openings)."""
         query: Select = select(
             func.avg(LabourStats.unemployment_rate).label("avg_unemployment_rate"),
             func.avg(LabourStats.median_salary).label("avg_median_salary"),
@@ -36,6 +37,7 @@ class LabourStatsRepository:
     def get_for_regions(
         self, db_session: Session, city: str, country: str | None
     ) -> list[LabourStats]:
+        """List labour stats rows for all regions in a city."""
         query: Select = select(LabourStats).where(LabourStats.city == city)
         if country:
             query = query.where(LabourStats.country == country)

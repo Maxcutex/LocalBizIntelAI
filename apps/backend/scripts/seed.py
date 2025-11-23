@@ -39,12 +39,14 @@ def build_seed_records(
     """
     Build ORM instances for demo data. This is pure (no DB), used by tests and seeding.
     """
-    demographics_rows: list[Demographics] = []
-    spending_rows: list[Spending] = []
-    labour_rows: list[LabourStats] = []
-    density_rows: list[BusinessDensity] = []
-    opportunity_rows: list[OpportunityScore] = []
-    report_job_rows: list[ReportJob] = []
+    seed_records: dict[str, list[Any]] = {
+        "demographics": [],
+        "spending": [],
+        "labour_stats": [],
+        "business_density": [],
+        "opportunity_scores": [],
+        "report_jobs": [],
+    }
 
     toronto_regions = [
         ("toronto-downtown", {"lat": 43.6532, "lng": -79.3832}),
@@ -57,6 +59,134 @@ def build_seed_records(
         ("nyc-queens", {"lat": 40.7282, "lng": -73.7949}),
     ]
 
+    def add_opportunity_scores_for_region(
+        city: str,
+        country: str,
+        geo_id: str,
+        region_index: int,
+    ) -> None:
+        for (
+            business_type,
+            base_demand,
+            base_supply,
+            base_competition,
+            base_composite,
+        ) in [
+            ("restaurant", 0.78, 0.62, 0.55, 0.70),
+            ("grocery", 0.66, 0.58, 0.60, 0.62),
+            ("salon", 0.59, 0.46, 0.43, 0.56),
+        ]:
+            seed_records["opportunity_scores"].append(
+                OpportunityScore(
+                    tenant_id=None,
+                    geo_id=geo_id,
+                    country=country,
+                    city=city,
+                    business_type=business_type,
+                    demand_score=base_demand + (region_index * 0.03),
+                    supply_score=base_supply + (region_index * 0.02),
+                    competition_score=base_competition + (region_index * 0.01),
+                    composite_score=base_composite + (region_index * 0.03),
+                    calculated_at=now,
+                )
+            )
+
+    def add_region_data(
+        city: str,
+        country: str,
+        geo_id: str,
+        coordinates: dict[str, float],
+        region_index: int,
+        base_population: int,
+        base_income: float,
+    ) -> None:
+        population_total = base_population + (region_index * 55_000)
+        median_income = base_income + (region_index * 6_000)
+
+        seed_records["demographics"].append(
+            Demographics(
+                tenant_id=None,
+                geo_id=geo_id,
+                country=country,
+                city=city,
+                population_total=population_total,
+                median_income=median_income,
+                age_distribution={
+                    "0-17": 0.17,
+                    "18-34": 0.28,
+                    "35-54": 0.30,
+                    "55+": 0.25,
+                },
+                education_levels={
+                    "high_school_or_less": 0.34,
+                    "college": 0.29,
+                    "bachelors_plus": 0.37,
+                },
+                household_size_avg=2.4 + (region_index * 0.1),
+                immigration_ratio=0.32,
+                coordinates=coordinates,
+                last_updated=now,
+            )
+        )
+
+        seed_records["labour_stats"].append(
+            LabourStats(
+                tenant_id=None,
+                geo_id=geo_id,
+                country=country,
+                city=city,
+                unemployment_rate=0.055 - (region_index * 0.003),
+                job_openings=1200 + (region_index * 150),
+                median_salary=58_000 + (region_index * 4_000),
+                labour_force_participation=0.66 + (region_index * 0.01),
+                last_updated=now,
+            )
+        )
+
+        for category, avg_spend, spend_index in [
+            ("food_and_beverage", 240.0 + region_index * 15, 1.05),
+            ("retail", 180.0 + region_index * 10, 0.98),
+            ("services", 130.0 + region_index * 8, 1.02),
+        ]:
+            seed_records["spending"].append(
+                Spending(
+                    tenant_id=None,
+                    geo_id=geo_id,
+                    country=country,
+                    city=city,
+                    category=category,
+                    avg_monthly_spend=avg_spend,
+                    spend_index=spend_index,
+                    last_updated=now,
+                )
+            )
+
+        for business_type, count, density_score in [
+            ("restaurant", 420 + region_index * 40, 0.72),
+            ("grocery", 120 + region_index * 10, 0.45),
+            ("salon", 95 + region_index * 8, 0.38),
+        ]:
+            seed_records["business_density"].append(
+                BusinessDensity(
+                    tenant_id=None,
+                    geo_id=geo_id,
+                    country=country,
+                    city=city,
+                    business_type=business_type,
+                    count=count,
+                    density_score=density_score,
+                    coordinates=coordinates,
+                    last_updated=now,
+                )
+            )
+
+        add_opportunity_scores_for_region(
+            city=city,
+            country=country,
+            geo_id=geo_id,
+            region_index=region_index,
+        )
+
     def add_city_data(
         city: str,
         country: str,
@@ -65,115 +195,15 @@ def build_seed_records(
         base_income: float,
     ) -> None:
         for region_index, (geo_id, coordinates) in enumerate(regions):
-            population_total = base_population + (region_index * 55_000)
-            median_income = base_income + (region_index * 6_000)
-
-            demographics_rows.append(
-                Demographics(
-                    tenant_id=None,
-                    geo_id=geo_id,
-                    country=country,
-                    city=city,
-                    population_total=population_total,
-                    median_income=median_income,
-                    age_distribution={
-                        "0-17": 0.17,
-                        "18-34": 0.28,
-                        "35-54": 0.30,
-                        "55+": 0.25,
-                    },
-                    education_levels={
-                        "high_school_or_less": 0.34,
-                        "college": 0.29,
-                        "bachelors_plus": 0.37,
-                    },
-                    household_size_avg=2.4 + (region_index * 0.1),
-                    immigration_ratio=0.32,
-                    coordinates=coordinates,
-                    last_updated=now,
-                )
+            add_region_data(
+                city=city,
+                country=country,
+                geo_id=geo_id,
+                coordinates=coordinates,
+                region_index=region_index,
+                base_population=base_population,
+                base_income=base_income,
             )
-
-            labour_rows.append(
-                LabourStats(
-                    tenant_id=None,
-                    geo_id=geo_id,
-                    country=country,
-                    city=city,
-                    unemployment_rate=0.055 - (region_index * 0.003),
-                    job_openings=1200 + (region_index * 150),
-                    median_salary=58_000 + (region_index * 4_000),
-                    labour_force_participation=0.66 + (region_index * 0.01),
-                    last_updated=now,
-                )
-            )
-
-            for category, avg_spend, spend_index in [
-                ("food_and_beverage", 240.0 + region_index * 15, 1.05),
-                ("retail", 180.0 + region_index * 10, 0.98),
-                ("services", 130.0 + region_index * 8, 1.02),
-            ]:
-                spending_rows.append(
-                    Spending(
-                        tenant_id=None,
-                        geo_id=geo_id,
-                        country=country,
-                        city=city,
-                        category=category,
-                        avg_monthly_spend=avg_spend,
-                        spend_index=spend_index,
-                        last_updated=now,
-                    )
-                )
-
-            for business_type, count, density_score in [
-                ("restaurant", 420 + region_index * 40, 0.72),
-                ("grocery", 120 + region_index * 10, 0.45),
-                ("salon", 95 + region_index * 8, 0.38),
-            ]:
-                density_rows.append(
-                    BusinessDensity(
-                        tenant_id=None,
-                        geo_id=geo_id,
-                        country=country,
-                        city=city,
-                        business_type=business_type,
-                        count=count,
-                        density_score=density_score,
-                        coordinates=coordinates,
-                        last_updated=now,
-                    )
-                )
-
-            for (
-                business_type,
-                base_demand,
-                base_supply,
-                base_competition,
-                base_composite,
-            ) in [
-                ("restaurant", 0.78, 0.62, 0.55, 0.70),
-                ("grocery", 0.66, 0.58, 0.60, 0.62),
-                ("salon", 0.59, 0.46, 0.43, 0.56),
-            ]:
-                demand = base_demand + (region_index * 0.03)
-                supply = base_supply + (region_index * 0.02)
-                competition = base_competition + (region_index * 0.01)
-                composite = base_composite + (region_index * 0.03)
-                opportunity_rows.append(
-                    OpportunityScore(
-                        tenant_id=None,
-                        geo_id=geo_id,
-                        country=country,
-                        city=city,
-                        business_type=business_type,
-                        demand_score=demand,
-                        supply_score=supply,
-                        competition_score=competition,
-                        composite_score=composite,
-                        calculated_at=now,
-                    )
-                )
 
     add_city_data(
         "Toronto", "CA", toronto_regions, base_population=250_000, base_income=65_000
@@ -182,7 +212,7 @@ def build_seed_records(
         "New York City", "US", nyc_regions, base_population=350_000, base_income=72_000
     )
 
-    report_job_rows.extend(
+    seed_records["report_jobs"].extend(
         [
             ReportJob(
                 tenant_id=seed_tenant_id,
@@ -209,17 +239,11 @@ def build_seed_records(
         ]
     )
 
-    return {
-        "demographics": demographics_rows,
-        "spending": spending_rows,
-        "labour_stats": labour_rows,
-        "business_density": density_rows,
-        "opportunity_scores": opportunity_rows,
-        "report_jobs": report_job_rows,
-    }
+    return seed_records
 
 
 def get_or_create_tenant(db_session: Session, now: datetime) -> Tenant:
+    """Return existing Demo Tenant or create it if missing."""
     existing = (
         db_session.execute(select(Tenant).where(Tenant.name == "Demo Tenant"))
         .scalars()
@@ -248,6 +272,7 @@ def get_or_create_user(
     role: str,
     now: datetime,
 ) -> User:
+    """Return existing user by email or create a new demo user."""
     existing = (
         db_session.execute(select(User).where(User.email == email)).scalars().first()
     )
@@ -268,6 +293,7 @@ def get_or_create_user(
 
 
 def clear_city_seed_data(db_session: Session) -> None:
+    """Delete city-scoped market seed data for cities in `SEED_CITIES`."""
     for city, country in SEED_CITIES:
         db_session.execute(
             delete(Demographics).where(
@@ -295,10 +321,12 @@ def clear_city_seed_data(db_session: Session) -> None:
 
 
 def clear_report_jobs_for_tenant(db_session: Session, tenant_id: uuid.UUID) -> None:
+    """Delete report jobs belonging to a tenant."""
     db_session.execute(delete(ReportJob).where(ReportJob.tenant_id == tenant_id))
 
 
 def seed_database(reset: bool = False) -> None:
+    """Seed the database with demo tenant, users, and market/report data."""
     now = datetime.now(timezone.utc)
     with SessionLocal() as db_session:
         if reset:
@@ -349,6 +377,7 @@ def seed_database(reset: bool = False) -> None:
 
 
 def main() -> None:
+    """CLI entrypoint for seeding."""
     parser = argparse.ArgumentParser(description="Seed the LocalBizIntelAI database.")
     parser.add_argument(
         "--reset",

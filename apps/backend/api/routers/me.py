@@ -1,3 +1,5 @@
+"""User-context routes for the authenticated caller."""
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
@@ -11,6 +13,7 @@ router = APIRouter()
 
 
 def get_auth_service() -> AuthService:
+    """Construct an `AuthService` with concrete repositories for request DI."""
     return AuthService(
         AuthServiceDependencies(
             user_repository=UserRepository(),
@@ -29,6 +32,9 @@ def get_me(
     auth_service: AuthService = Depends(get_auth_service),
 ) -> dict:
     """
-    Returns the current user's profile and current tenant summary.
+    Return the current user's profile and current tenant summary.
+
+    Example:
+        `GET /me`
     """
     return auth_service.get_current_user_profile(db, context.user_id)

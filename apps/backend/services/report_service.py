@@ -28,6 +28,16 @@ class ReportService:
         tenant_id: UUID,
         user_id: UUID,
     ) -> dict[str, Any]:
+        """
+        Create a new feasibility `ReportJob` and publish a processing message.
+
+        This enforces report quota through `BillingService` before enqueueing.
+
+        Args:
+            request: Validated request payload from `/reports/feasibility`.
+            tenant_id: Tenant owning the job.
+            user_id: User who triggered job; included in queue message.
+        """
         quota_ok = self._billing_service.check_report_quota(db_session, tenant_id)
         if not quota_ok:
             raise HTTPException(
@@ -58,10 +68,12 @@ class ReportService:
         return {"job_id": str(job.id), "status": job.status}
 
     def list_reports(self, db_session: Session, tenant_id: UUID) -> list[Any]:
+        """List all report jobs for a tenant, newest-first."""
         jobs = self._report_jobs_repository.list_by_tenant(db_session, tenant_id)
         return jobs
 
     def get_report(self, db_session: Session, report_id: UUID, tenant_id: UUID) -> Any:
+        """Get a report job for a tenant, raising 404 if missing or not authorized."""
         job = self._report_jobs_repository.get_for_tenant(
             db_session, report_id, tenant_id
         )

@@ -1,3 +1,5 @@
+"""Persona routes for AI-generated customer archetypes."""
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
@@ -15,6 +17,7 @@ router = APIRouter()
 
 
 def get_persona_service() -> PersonaService:
+    """Construct a `PersonaService` with repositories and AI client."""
     ai_engine_client = AiEngineClient(get_settings())
     return PersonaService(
         PersonaServiceDependencies(
@@ -38,6 +41,16 @@ def generate_personas(
 ) -> PersonaGenerateResponse:
     """
     Generate personas for a market/area using demographics + AI-engine.
+
+    Example request:
+
+        POST /personas/generate
+        {
+          "city": "Toronto",
+          "country": "CA",
+          "geo_ids": ["toronto-downtown", "toronto-north-york"],
+          "business_type": "restaurant"
+        }
     """
     result = persona_service.generate_personas(
         db_session=db,

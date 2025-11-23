@@ -1,3 +1,5 @@
+"""ETL orchestration routes for triggering ingestion runs (admin-only)."""
+
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi import status as http_status
 from sqlalchemy.orm import Session
@@ -12,6 +14,7 @@ router = APIRouter()
 
 
 def get_etl_service() -> ETLOrchestrationService:
+    """Construct an `ETLOrchestrationService` with a PubSub client."""
     return ETLOrchestrationService(
         EtlOrchestrationServiceDependencies(pubsub_client=PubSubClient())
     )
@@ -29,6 +32,16 @@ def trigger_etl_run(
 ) -> EtlRunResponse:
     """
     Admin endpoint to trigger an ETL workflow.
+
+    Example request:
+
+        POST /etl/run
+        {
+          "dataset": "demographics",
+          "country": "CA",
+          "city": "Toronto",
+          "options": { "full_refresh": true }
+        }
     """
     if context.role != "ADMIN":
         raise HTTPException(

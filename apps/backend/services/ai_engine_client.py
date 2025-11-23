@@ -29,6 +29,16 @@ class AiEngineClient:
         timeout_s: float | None = None,
         openai_client: Any | None = None,
     ) -> None:
+        """
+        Create an AI engine client bound to application settings.
+
+        Args:
+            settings: Application `Settings` instance (required).
+            api_key: Optional override for OpenAI API key.
+            model: Optional override for model name.
+            timeout_s: Optional override for request timeout seconds.
+            openai_client: Optional injected OpenAI client for tests.
+        """
         self._settings = settings
         self._api_key = api_key or settings.openai_api_key
         self._model: str = model or settings.openai_model
@@ -50,6 +60,20 @@ class AiEngineClient:
         system_prompt: str,
         user_payload: dict[str, Any],
     ) -> dict[str, Any]:
+        """
+        Call the LLM and parse a JSON object response.
+
+        Args:
+            system_prompt: System prompt describing the task and output shape.
+            user_payload: Grounded payload (DB-derived) serialized to JSON.
+
+        Returns:
+            Parsed and sanitized JSON object from the model.
+
+        Raises:
+            RuntimeError: If no OpenAI client is configured.
+            json.JSONDecodeError: If the model returns invalid JSON.
+        """
         if self._openai_client is None:
             raise RuntimeError("OpenAI client not configured")
 
@@ -97,6 +121,7 @@ class AiEngineClient:
         return value
 
     def generate_market_summary(self, payload: dict[str, Any]) -> dict[str, Any]:
+        """Generate a narrative market summary JSON from grounded market stats."""
         if self._openai_client is None:
             city = payload.get("city", "unknown city")
             return {"summary": f"Market summary for {city}."}
@@ -115,6 +140,9 @@ class AiEngineClient:
     def generate_opportunity_commentary(
         self, ranked_regions: list[dict[str, Any]]
     ) -> dict[str, Any]:
+        """
+        Generate short AI commentary and rationales for ranked opportunity regions.
+        """
         if self._openai_client is None:
             return {
                 "commentary": "Opportunities generated.",
@@ -156,6 +184,7 @@ class AiEngineClient:
             }
 
     def generate_personas(self, input_payload: dict[str, Any]) -> dict[str, Any]:
+        """Generate customer personas JSON using grounded market stats."""
         if self._openai_client is None:
             city = input_payload.get("city", "unknown city")
             business_type = input_payload.get("business_type")

@@ -1,3 +1,5 @@
+"""Tenant routes for current tenant lookup and (stubbed) tenant CRUD."""
+
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
@@ -10,6 +12,7 @@ router = APIRouter()
 
 
 def get_tenant_service() -> TenantService:
+    """Construct a `TenantService` with a concrete tenant repository."""
     return TenantService(
         TenantServiceDependencies(tenant_repository=TenantRepository())
     )
@@ -23,6 +26,9 @@ def get_tenant_service() -> TenantService:
 def list_tenants(tenant_service: TenantService = Depends(get_tenant_service)) -> dict:
     """
     List tenants accessible to the current user.
+
+    Example:
+        `GET /tenants`
     """
     return {"detail": "Not implemented"}
 
@@ -35,6 +41,11 @@ def list_tenants(tenant_service: TenantService = Depends(get_tenant_service)) ->
 def create_tenant(tenant_service: TenantService = Depends(get_tenant_service)) -> dict:
     """
     Create a new tenant/workspace.
+
+    Example request:
+
+        POST /tenants
+        { "name": "My Workspace", "plan": "starter" }
     """
     return {"detail": "Not implemented"}
 
@@ -49,6 +60,9 @@ def get_current_tenant(
     tenant_service: TenantService = Depends(get_tenant_service),
 ) -> dict:
     """
-    Returns the current tenant based on auth context.
+    Return the current tenant based on auth context.
+
+    Example:
+        `GET /tenants/current`
     """
     return tenant_service.get_current_tenant(db, context.tenant_id).model_dump()

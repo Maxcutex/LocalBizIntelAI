@@ -1,3 +1,5 @@
+"""Billing routes for plan/usage lookup and (stubbed) checkout flows."""
+
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
@@ -17,6 +19,7 @@ router = APIRouter()
 
 
 def get_billing_service() -> BillingService:
+    """Construct a `BillingService` with repositories and Stripe client for DI."""
     return BillingService(
         BillingServiceDependencies(
             billing_repository=BillingRepository(),
@@ -35,6 +38,12 @@ def get_plan(
     context: CurrentRequestContext = Depends(get_current_request_context),
     billing_service: BillingService = Depends(get_billing_service),
 ) -> BillingPlanResponse:
+    """
+    Get the current tenant's billing plan and usage totals.
+
+    Example:
+        `GET /billing/plan`
+    """
     result = billing_service.get_plan_and_usage(db, context.tenant_id)
     return BillingPlanResponse.model_validate(result)
 
@@ -49,6 +58,14 @@ def create_checkout_session(
     context: CurrentRequestContext = Depends(get_current_request_context),
     billing_service: BillingService = Depends(get_billing_service),
 ) -> CheckoutSessionResponse:
+    """
+    Create a Stripe checkout session to upgrade/downgrade plan.
+
+    Example request:
+
+        POST /billing/checkout-session
+        { "target_plan": "pro" }
+    """
     result = billing_service.create_checkout_session(
         db, context.tenant_id, request.target_plan
     )

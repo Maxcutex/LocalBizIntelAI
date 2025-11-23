@@ -20,6 +20,11 @@ class AuthService:
         self._tenant_repository = dependencies.tenant_repository
 
     def get_current_user_profile(self, db_session: Session, user_id: UUID) -> dict:
+        """
+        Load the current user's profile and tenant from the database.
+
+        Used by `/auth/me` and `/me` to hydrate auth context into API responses.
+        """
         user = self._user_repository.get_by_id(db_session, user_id)
         if user is None:
             raise HTTPException(

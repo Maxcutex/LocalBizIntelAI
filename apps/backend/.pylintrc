@@ -9,7 +9,7 @@ persistent=yes
 load-plugins=
 
 # Files or directories to be skipped
-ignore=migrations,tests,.venv,venv
+ignore=migrations,.venv,venv
 
 [FORMAT]
 # Maximum number of characters on a single line
@@ -34,9 +34,6 @@ disable=
     import-outside-toplevel,
     protected-access,
     fixme,
-    missing-module-docstring,
-    missing-function-docstring,
-    missing-class-docstring,
 
 [REPORTS]
 # Set the output format

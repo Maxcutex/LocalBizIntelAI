@@ -14,6 +14,7 @@ class ReportJobsRepository:
     """Data access for `report_jobs` and `report_sections` tables."""
 
     def list_by_tenant(self, db_session: Session, tenant_id: UUID) -> list[ReportJob]:
+        """List report jobs for a tenant, ordered by creation time desc."""
         query: Select = (
             select(ReportJob)
             .where(ReportJob.tenant_id == tenant_id)
@@ -25,6 +26,7 @@ class ReportJobsRepository:
     def get_for_tenant(
         self, db_session: Session, report_id: UUID, tenant_id: UUID
     ) -> ReportJob | None:
+        """Get a report job by id, scoped to tenant; returns None if not found."""
         query: Select = select(ReportJob).where(
             ReportJob.id == report_id, ReportJob.tenant_id == tenant_id
         )
@@ -38,6 +40,7 @@ class ReportJobsRepository:
         country: str,
         business_type: str,
     ) -> ReportJob:
+        """Insert a new PENDING report job and return the refreshed ORM row."""
         now = datetime.now(timezone.utc)
         job = ReportJob(
             tenant_id=tenant_id,
@@ -66,6 +69,7 @@ class ReportJobsRepository:
         limit: int = 100,
         offset: int = 0,
     ) -> list[ReportJob]:
+        """Admin listing for report jobs with optional filters and pagination."""
         query: Select = select(ReportJob)
         if tenant_id is not None:
             query = query.where(ReportJob.tenant_id == tenant_id)

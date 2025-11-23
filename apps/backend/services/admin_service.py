@@ -28,6 +28,16 @@ class AdminService:
         limit: int,
         offset: int,
     ) -> list:
+        """
+        List users across tenants with optional filters (admin use).
+
+        Args:
+            email_contains: Optional substring match for email.
+            role: Optional role filter (e.g., "ADMIN", "USER").
+            tenant_id: Optional tenant UUID filter.
+            limit: Max number of results.
+            offset: Pagination offset.
+        """
         return self._user_repository.admin_list(
             db_session,
             email_contains=email_contains,
@@ -45,6 +55,15 @@ class AdminService:
         limit: int,
         offset: int,
     ) -> list:
+        """
+        List tenants with optional filters (admin use).
+
+        Args:
+            name_contains: Optional substring match for tenant name.
+            plan: Optional plan filter (e.g., "starter", "pro").
+            limit: Max number of results.
+            offset: Pagination offset.
+        """
         return self._tenant_repository.admin_list(
             db_session,
             name_contains=name_contains,
@@ -54,6 +73,7 @@ class AdminService:
         )
 
     def list_dataset_freshness(self, db_session: Session) -> list:
+        """List all dataset freshness records for operational monitoring."""
         return self._data_freshness_repository.list_all(db_session)
 
     def list_report_jobs(
@@ -67,6 +87,11 @@ class AdminService:
         limit: int,
         offset: int,
     ) -> list:
+        """
+        List report jobs across tenants with optional filters (admin use).
+
+        Args mirror `ReportJob` fields plus pagination.
+        """
         return self._report_jobs_repository.admin_list(
             db_session,
             tenant_id=tenant_id,

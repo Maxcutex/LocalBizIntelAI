@@ -1,3 +1,5 @@
+"""Admin API routes for privileged listing and operational views."""
+
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -25,6 +27,7 @@ router = APIRouter()
 
 
 def get_admin_service() -> AdminService:
+    """Construct an `AdminService` with concrete repositories for request DI."""
     return AdminService(
         AdminServiceDependencies(
             user_repository=UserRepository(),
@@ -49,6 +52,18 @@ def list_users(
     context=Depends(get_current_request_context),
     admin_service: AdminService = Depends(get_admin_service),
 ) -> AdminUsersListResponse:
+    """
+    List users across tenants (admin-only).
+
+    Query params are all optional filters:
+    - `email`: exact email match
+    - `role`: role string (e.g., "ADMIN", "USER")
+    - `tenant_id`: UUID of tenant
+    - `limit`/`offset`: pagination
+
+    Example:
+        `GET /admin/users?role=ADMIN&limit=50`
+    """
     if context.role != "ADMIN":
         raise HTTPException(
             status_code=http_status.HTTP_403_FORBIDDEN,
@@ -73,6 +88,16 @@ def list_tenants(
     context=Depends(get_current_request_context),
     admin_service: AdminService = Depends(get_admin_service),
 ) -> AdminTenantsListResponse:
+    """
+    List tenants (admin-only).
+
+    Optional filters:
+    - `name`: partial name match
+    - `plan`: plan code (e.g., "starter", "pro")
+
+    Example:
+        `GET /admin/tenants?plan=starter`
+    """
     if context.role != "ADMIN":
         raise HTTPException(
             status_code=http_status.HTTP_403_FORBIDDEN,
@@ -93,6 +118,12 @@ def list_datasets(
     context=Depends(get_current_request_context),
     admin_service: AdminService = Depends(get_admin_service),
 ) -> AdminDatasetsListResponse:
+    """
+    List dataset freshness metadata (admin-only).
+
+    Example:
+        `GET /admin/datasets`
+    """
     if context.role != "ADMIN":
         raise HTTPException(
             status_code=http_status.HTTP_403_FORBIDDEN,
@@ -121,6 +152,16 @@ def list_report_jobs(
     context=Depends(get_current_request_context),
     admin_service: AdminService = Depends(get_admin_service),
 ) -> AdminReportJobsListResponse:
+    """
+    List report jobs across tenants (admin-only).
+
+    Optional filters mirror `ReportJob` fields:
+    - `tenant_id`, `status`, `city`, `country`, `business_type`
+    - `limit`/`offset` for pagination
+
+    Example:
+        `GET /admin/jobs/reports?status=PENDING&country=CA`
+    """
     if context.role != "ADMIN":
         raise HTTPException(
             status_code=http_status.HTTP_403_FORBIDDEN,
@@ -149,6 +190,9 @@ def list_report_jobs(
 )
 def system_health(admin_service: AdminService = Depends(get_admin_service)) -> dict:
     """
-    Return internal system health and monitoring data.
+    Return internal system health and monitoring data (admin-only).
+
+    Example:
+        `GET /admin/system/health`
     """
     return {"detail": "Not implemented"}

@@ -24,6 +24,13 @@ class BillingService:
         """
         Validate whether the tenant can create a new report job.
 
+        Args:
+            db_session: SQLAlchemy session.
+            tenant_id: Tenant UUID.
+
+        Returns:
+            True if the tenant is allowed to create another report.
+
         TODO: Replace with real plan/quota lookup + usage metering.
         """
         _ = db_session
@@ -33,6 +40,13 @@ class BillingService:
     def get_plan_and_usage(
         self, db_session: Session, tenant_id: UUID
     ) -> dict[str, Any]:
+        """
+        Return current billing plan/status and usage totals for a tenant.
+
+        Args:
+            db_session: SQLAlchemy session.
+            tenant_id: Tenant UUID.
+        """
         billing_account = self._billing_repository.get_billing_account(
             db_session, tenant_id
         )
@@ -48,6 +62,17 @@ class BillingService:
     def create_checkout_session(
         self, db_session: Session, tenant_id: UUID, target_plan: str
     ) -> dict[str, Any]:
+        """
+        Create a Stripe checkout session payload for the desired plan.
+
+        Args:
+            db_session: SQLAlchemy session.
+            tenant_id: Tenant UUID.
+            target_plan: Plan code to purchase (must be non-empty).
+
+        Raises:
+            HTTPException: If `target_plan` is empty.
+        """
         _ = db_session
         if not target_plan:
             raise HTTPException(

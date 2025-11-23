@@ -12,6 +12,9 @@ class BusinessDensityRepository:
     """Data access for `business_density` table."""
 
     def distinct_cities(self, db_session: Session, country: str | None) -> list[str]:
+        """
+        Return distinct city names with business density rows, optionally filtered.
+        """
         query: Select = select(distinct(BusinessDensity.city)).order_by(
             BusinessDensity.city
         )
@@ -27,6 +30,7 @@ class BusinessDensityRepository:
         country: str | None,
         business_type: str | None,
     ) -> list[BusinessDensity]:
+        """List business density rows for a city and optional business type."""
         query: Select = select(BusinessDensity).where(BusinessDensity.city == city)
         if country:
             query = query.where(BusinessDensity.country == country)
@@ -37,6 +41,7 @@ class BusinessDensityRepository:
         return cast(list[BusinessDensity], list(result))
 
     def get_summary(self, db_session: Session, city: str, country: str | None) -> dict:
+        """Compute city-level density summary (counts and average scores)."""
         query: Select = select(
             func.sum(BusinessDensity.count).label("total_business_count"),
             func.avg(BusinessDensity.density_score).label("avg_density_score"),

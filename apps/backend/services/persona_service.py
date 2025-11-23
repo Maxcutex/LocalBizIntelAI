@@ -37,6 +37,16 @@ class PersonaService:
         business_type: str | None,
         tenant_id: UUID,
     ) -> dict:
+        """
+        Generate AI personas for a city or subset of regions.
+
+        Pulls demographics, spending, and labour stats for the requested area,
+        then delegates persona synthesis to the AI engine.
+
+        Args:
+            geo_ids: Optional region `geo_id` filters. When None, uses all regions.
+            business_type: Optional business type to tailor personas.
+        """
         demographics_rows = self._demographics_repository.get_for_regions(
             db_session, city, country
         )

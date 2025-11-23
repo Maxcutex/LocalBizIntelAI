@@ -1,3 +1,5 @@
+"""Market data routes for cities, demographics, and business density."""
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
@@ -13,6 +15,7 @@ router = APIRouter()
 
 
 def get_market_service() -> MarketService:
+    """Construct a `MarketService` with concrete repositories for request DI."""
     return MarketService(
         MarketServiceDependencies(
             demographics_repository=DemographicsRepository(),
@@ -33,7 +36,13 @@ def list_cities(
     market_service: MarketService = Depends(get_market_service),
 ) -> dict:
     """
-    Return distinct cities where market data exists (optionally filtered by country).
+    Return distinct cities where market data exists.
+
+    Query params:
+    - `country` (optional): filter cities by country code.
+
+    Example:
+        `GET /markets/cities?country=CA`
     """
     cities = market_service.list_cities(db, country)
     return {"cities": cities}
@@ -52,6 +61,13 @@ def get_market_overview(
 ) -> dict:
     """
     Return a high-level market overview for a city.
+
+    Path/query:
+    - `city` (path): city name.
+    - `country` (optional): country code for disambiguation.
+
+    Example:
+        `GET /markets/Toronto/overview?country=CA`
     """
     return market_service.get_overview(db, city, country, context.tenant_id)
 
@@ -67,7 +83,10 @@ def get_market_demographics(
     market_service: MarketService = Depends(get_market_service),
 ) -> dict:
     """
-    Return market demographics for a city.
+    Return market demographics per region for a city.
+
+    Example:
+        `GET /markets/Toronto/demographics?country=CA`
     """
     demographics = market_service.get_demographics_by_region(db, city, country)
     return {"city": city, "country": country, "demographics": demographics}
@@ -87,6 +106,9 @@ def get_business_density(
     """
     Return business density information for a city, optionally filtered by business
     type.
+
+    Example:
+        `GET /markets/Toronto/business-density?country=CA&business_type=restaurant`
     """
     density = market_service.get_business_density(db, city, country, business_type)
     return {

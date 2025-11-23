@@ -1,3 +1,5 @@
+"""Reports routes for feasibility jobs and report retrieval."""
+
 from uuid import UUID
 
 from fastapi import APIRouter, Depends
@@ -24,6 +26,7 @@ router = APIRouter()
 
 
 def get_report_service() -> ReportService:
+    """Construct a `ReportService` and its dependency graph for request DI."""
     billing_service = BillingService(
         BillingServiceDependencies(
             billing_repository=BillingRepository(),
@@ -51,7 +54,17 @@ def create_feasibility_report(
     report_service: ReportService = Depends(get_report_service),
 ) -> FeasibilityReportResponse:
     """
-    Create a new report job and enqueue processing.
+    Create a new feasibility report job and enqueue processing.
+
+    Example request:
+
+        POST /reports/feasibility
+        {
+          "city": "Toronto",
+          "country": "CA",
+          "business_type": "restaurant",
+          "regions": ["toronto-downtown"]
+        }
     """
     result = report_service.create_feasibility_report(
         db_session=db,
@@ -71,6 +84,12 @@ def list_reports(
     context: CurrentRequestContext = Depends(get_current_request_context),
     report_service: ReportService = Depends(get_report_service),
 ) -> ReportsListResponse:
+    """
+    List report jobs for the current tenant.
+
+    Example:
+        `GET /reports`
+    """
     jobs = report_service.list_reports(db, context.tenant_id)
     return ReportsListResponse(
         reports=[ReportJobRead.model_validate(job) for job in jobs]
@@ -89,6 +108,9 @@ def get_report_status(
 ) -> ReportGetResponse:
     """
     Get current status and URL (when ready) for a report job.
+
+    Example:
+        `GET /reports/<report_id>`
     """
     job = report_service.get_report(db, report_id, context.tenant_id)
     return ReportGetResponse(report=ReportJobRead.model_validate(job))
