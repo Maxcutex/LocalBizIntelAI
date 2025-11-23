@@ -10,6 +10,7 @@ from api.schemas.billing import (
 from repositories.billing_repository import BillingRepository
 from repositories.usage_repository import UsageRepository
 from services.billing_service import BillingService
+from services.dependencies import BillingServiceDependencies
 from services.stripe_client import StripeClient
 
 router = APIRouter()
@@ -17,9 +18,11 @@ router = APIRouter()
 
 def get_billing_service() -> BillingService:
     return BillingService(
-        billing_repository=BillingRepository(),
-        usage_repository=UsageRepository(),
-        stripe_client=StripeClient(),
+        BillingServiceDependencies(
+            billing_repository=BillingRepository(),
+            usage_repository=UsageRepository(),
+            stripe_client=StripeClient(),
+        )
     )
 
 

@@ -3,6 +3,7 @@ from datetime import datetime
 import pytest
 from fastapi import HTTPException
 
+from services.dependencies import MarketServiceDependencies
 from services.market_service import MarketService
 
 
@@ -48,10 +49,12 @@ def test_get_business_density_maps_rows():
             raise AssertionError("not used")
 
     service = MarketService(
-        demographics_repository=DummyDemographicsRepository(),
-        business_density_repository=FakeBusinessDensityRepository(),
-        spending_repository=DummySpendingRepository(),
-        labour_stats_repository=DummyLabourStatsRepository(),
+        MarketServiceDependencies(
+            demographics_repository=DummyDemographicsRepository(),
+            business_density_repository=FakeBusinessDensityRepository(),
+            spending_repository=DummySpendingRepository(),
+            labour_stats_repository=DummyLabourStatsRepository(),
+        )
     )
     result = service.get_business_density(None, "Accra", None, None)
 
@@ -89,10 +92,12 @@ def test_get_business_density_raises_404_when_empty():
             raise AssertionError("not used")
 
     service = MarketService(
-        demographics_repository=DummyDemographicsRepository(),
-        business_density_repository=FakeBusinessDensityRepository(),
-        spending_repository=DummySpendingRepository(),
-        labour_stats_repository=DummyLabourStatsRepository(),
+        MarketServiceDependencies(
+            demographics_repository=DummyDemographicsRepository(),
+            business_density_repository=FakeBusinessDensityRepository(),
+            spending_repository=DummySpendingRepository(),
+            labour_stats_repository=DummyLabourStatsRepository(),
+        )
     )
 
     with pytest.raises(HTTPException) as exc_info:

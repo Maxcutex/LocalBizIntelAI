@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from api.dependencies import get_current_request_context, get_db
 from api.schemas.etl import EtlRunRequest, EtlRunResponse
+from services.dependencies import EtlOrchestrationServiceDependencies
 from services.etl_orchestration_service import ETLOrchestrationService
 from services.pubsub_client import PubSubClient
 
@@ -11,7 +12,9 @@ router = APIRouter()
 
 
 def get_etl_service() -> ETLOrchestrationService:
-    return ETLOrchestrationService(pubsub_client=PubSubClient())
+    return ETLOrchestrationService(
+        EtlOrchestrationServiceDependencies(pubsub_client=PubSubClient())
+    )
 
 
 @router.post(

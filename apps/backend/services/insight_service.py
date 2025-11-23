@@ -7,11 +7,7 @@ from uuid import UUID
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from repositories.demographics_repository import DemographicsRepository
-from repositories.labour_stats_repository import LabourStatsRepository
-from repositories.opportunity_scores_repository import OpportunityScoresRepository
-from repositories.spending_repository import SpendingRepository
-from services.ai_engine_client import AiEngineClient
+from services.dependencies import InsightServiceDependencies
 
 
 class InsightService:
@@ -19,17 +15,13 @@ class InsightService:
 
     def __init__(
         self,
-        demographics_repository: DemographicsRepository,
-        spending_repository: SpendingRepository,
-        labour_stats_repository: LabourStatsRepository,
-        opportunity_scores_repository: OpportunityScoresRepository,
-        ai_engine_client: AiEngineClient,
+        dependencies: InsightServiceDependencies,
     ) -> None:
-        self._demographics_repository = demographics_repository
-        self._spending_repository = spending_repository
-        self._labour_stats_repository = labour_stats_repository
-        self._opportunity_scores_repository = opportunity_scores_repository
-        self._ai_engine_client = ai_engine_client
+        self._demographics_repository = dependencies.demographics_repository
+        self._spending_repository = dependencies.spending_repository
+        self._labour_stats_repository = dependencies.labour_stats_repository
+        self._opportunity_scores_repository = dependencies.opportunity_scores_repository
+        self._ai_engine_client = dependencies.ai_engine_client
 
     @staticmethod
     def _numeric_to_float(value: Any | None) -> float | None:
@@ -61,7 +53,7 @@ class InsightService:
                 detail="No market data found for city",
             )
 
-        region_filter = set(regions) if regions else None
+        region_filter: set[str] = set(regions) if regions else set()
 
         demographics_payload = [
             {
@@ -70,7 +62,7 @@ class InsightService:
                 "median_income": self._numeric_to_float(row.median_income),
             }
             for row in demographics_rows
-            if region_filter is None or row.geo_id in region_filter
+            if not region_filter or row.geo_id in region_filter
         ]
 
         spending_payload = [
@@ -81,7 +73,7 @@ class InsightService:
                 "spend_index": self._numeric_to_float(row.spend_index),
             }
             for row in spending_rows
-            if region_filter is None or row.geo_id in region_filter
+            if not region_filter or row.geo_id in region_filter
         ]
 
         labour_payload = [
@@ -92,7 +84,7 @@ class InsightService:
                 "median_salary": self._numeric_to_float(row.median_salary),
             }
             for row in labour_rows
-            if region_filter is None or row.geo_id in region_filter
+            if not region_filter or row.geo_id in region_filter
         ]
 
         payload = {

@@ -4,6 +4,7 @@ import pytest
 from fastapi import HTTPException
 
 from api.schemas.reports import FeasibilityReportRequest
+from services.dependencies import ReportServiceDependencies
 from services.report_service import ReportService
 
 
@@ -31,9 +32,11 @@ def test_create_feasibility_report_creates_job_and_publishes():
             published_messages.append((topic, message))
 
     service = ReportService(
-        report_jobs_repository=FakeJobsRepository(),
-        billing_service=FakeBillingService(),
-        pubsub_client=FakePubSubClient(),
+        ReportServiceDependencies(
+            report_jobs_repository=FakeJobsRepository(),
+            billing_service=FakeBillingService(),
+            pubsub_client=FakePubSubClient(),
+        )
     )
 
     result = service.create_feasibility_report(
@@ -65,9 +68,11 @@ def test_create_feasibility_report_raises_when_quota_exceeded():
             raise AssertionError("should not be called")
 
     service = ReportService(
-        report_jobs_repository=DummyJobsRepository(),
-        billing_service=FakeBillingService(),
-        pubsub_client=DummyPubSubClient(),
+        ReportServiceDependencies(
+            report_jobs_repository=DummyJobsRepository(),
+            billing_service=FakeBillingService(),
+            pubsub_client=DummyPubSubClient(),
+        )
     )
 
     with pytest.raises(HTTPException) as exc_info:

@@ -6,6 +6,7 @@ from repositories.business_density_repository import BusinessDensityRepository
 from repositories.demographics_repository import DemographicsRepository
 from repositories.labour_stats_repository import LabourStatsRepository
 from repositories.spending_repository import SpendingRepository
+from services.dependencies import MarketServiceDependencies
 from services.market_service import MarketService
 
 router = APIRouter()
@@ -13,10 +14,12 @@ router = APIRouter()
 
 def get_market_service() -> MarketService:
     return MarketService(
-        demographics_repository=DemographicsRepository(),
-        business_density_repository=BusinessDensityRepository(),
-        spending_repository=SpendingRepository(),
-        labour_stats_repository=LabourStatsRepository(),
+        MarketServiceDependencies(
+            demographics_repository=DemographicsRepository(),
+            business_density_repository=BusinessDensityRepository(),
+            spending_repository=SpendingRepository(),
+            labour_stats_repository=LabourStatsRepository(),
+        )
     )
 
 

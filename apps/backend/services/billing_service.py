@@ -6,9 +6,7 @@ from uuid import UUID
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from repositories.billing_repository import BillingRepository
-from repositories.usage_repository import UsageRepository
-from services.stripe_client import StripeClient
+from services.dependencies import BillingServiceDependencies
 
 
 class BillingService:
@@ -16,13 +14,11 @@ class BillingService:
 
     def __init__(
         self,
-        billing_repository: BillingRepository,
-        usage_repository: UsageRepository,
-        stripe_client: StripeClient,
+        dependencies: BillingServiceDependencies,
     ) -> None:
-        self._billing_repository = billing_repository
-        self._usage_repository = usage_repository
-        self._stripe_client = stripe_client
+        self._billing_repository = dependencies.billing_repository
+        self._usage_repository = dependencies.usage_repository
+        self._stripe_client = dependencies.stripe_client
 
     def check_report_quota(self, db_session: Session, tenant_id: UUID) -> bool:
         """

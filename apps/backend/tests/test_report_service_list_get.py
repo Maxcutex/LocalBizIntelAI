@@ -3,6 +3,7 @@ from uuid import uuid4
 import pytest
 from fastapi import HTTPException
 
+from services.dependencies import ReportServiceDependencies
 from services.report_service import ReportService
 
 
@@ -29,9 +30,11 @@ def test_list_reports_returns_jobs_for_tenant():
             raise AssertionError("not used")
 
     service = ReportService(
-        report_jobs_repository=FakeRepo(),
-        billing_service=DummyBillingService(),
-        pubsub_client=DummyPubSubClient(),
+        ReportServiceDependencies(
+            report_jobs_repository=FakeRepo(),
+            billing_service=DummyBillingService(),
+            pubsub_client=DummyPubSubClient(),
+        )
     )
     result = service.list_reports(db_session=None, tenant_id=tenant_id)
 
@@ -52,9 +55,11 @@ def test_get_report_raises_404_when_missing():
             raise AssertionError("not used")
 
     service = ReportService(
-        report_jobs_repository=FakeRepo(),
-        billing_service=DummyBillingService(),
-        pubsub_client=DummyPubSubClient(),
+        ReportServiceDependencies(
+            report_jobs_repository=FakeRepo(),
+            billing_service=DummyBillingService(),
+            pubsub_client=DummyPubSubClient(),
+        )
     )
 
     with pytest.raises(HTTPException) as exc_info:

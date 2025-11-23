@@ -3,6 +3,7 @@ from uuid import uuid4
 import pytest
 from fastapi import HTTPException
 
+from services.dependencies import InsightServiceDependencies
 from services.insight_service import InsightService
 
 
@@ -47,11 +48,13 @@ def test_find_opportunities_applies_constraints_and_ranks():
             return []
 
     service = InsightService(
-        demographics_repository=DummyDemographicsRepository(),
-        spending_repository=DummySpendingRepository(),
-        labour_stats_repository=DummyLabourStatsRepository(),
-        opportunity_scores_repository=FakeOpportunityRepository(),
-        ai_engine_client=FakeAiClient(),
+        InsightServiceDependencies(
+            demographics_repository=DummyDemographicsRepository(),
+            spending_repository=DummySpendingRepository(),
+            labour_stats_repository=DummyLabourStatsRepository(),
+            opportunity_scores_repository=FakeOpportunityRepository(),
+            ai_engine_client=FakeAiClient(),
+        )
     )
 
     result = service.find_opportunities(
@@ -92,11 +95,13 @@ def test_find_opportunities_raises_404_when_empty():
             return {"commentary": "unused"}
 
     service = InsightService(
-        demographics_repository=DummyDemographicsRepository(),
-        spending_repository=DummySpendingRepository(),
-        labour_stats_repository=DummyLabourStatsRepository(),
-        opportunity_scores_repository=EmptyOpportunityRepository(),
-        ai_engine_client=DummyAiClient(),
+        InsightServiceDependencies(
+            demographics_repository=DummyDemographicsRepository(),
+            spending_repository=DummySpendingRepository(),
+            labour_stats_repository=DummyLabourStatsRepository(),
+            opportunity_scores_repository=EmptyOpportunityRepository(),
+            ai_engine_client=DummyAiClient(),
+        )
     )
 
     with pytest.raises(HTTPException) as exc_info:
@@ -139,11 +144,13 @@ def test_find_opportunities_sorts_and_falls_back_when_ai_fails():
             return []
 
     service = InsightService(
-        demographics_repository=DummyDemographicsRepository(),
-        spending_repository=DummySpendingRepository(),
-        labour_stats_repository=DummyLabourStatsRepository(),
-        opportunity_scores_repository=FakeOpportunityRepository(),
-        ai_engine_client=FailingAiClient(),
+        InsightServiceDependencies(
+            demographics_repository=DummyDemographicsRepository(),
+            spending_repository=DummySpendingRepository(),
+            labour_stats_repository=DummyLabourStatsRepository(),
+            opportunity_scores_repository=FakeOpportunityRepository(),
+            ai_engine_client=FailingAiClient(),
+        )
     )
 
     result = service.find_opportunities(

@@ -3,6 +3,7 @@ from uuid import uuid4
 from api.dependencies import CurrentRequestContext, get_current_request_context, get_db
 from api.main import create_app
 from api.routers import insights as insights_router
+from services.dependencies import InsightServiceDependencies
 from services.insight_service import InsightService
 
 
@@ -59,11 +60,13 @@ def test_opportunities_http_smoke_real_service_orders_and_includes_ai():
                 return []
 
         return InsightService(
-            demographics_repository=DummyDemographicsRepository(),
-            spending_repository=DummySpendingRepository(),
-            labour_stats_repository=DummyLabourStatsRepository(),
-            opportunity_scores_repository=FakeOpportunityRepository(),
-            ai_engine_client=FakeAiClient(),
+            InsightServiceDependencies(
+                demographics_repository=DummyDemographicsRepository(),
+                spending_repository=DummySpendingRepository(),
+                labour_stats_repository=DummyLabourStatsRepository(),
+                opportunity_scores_repository=FakeOpportunityRepository(),
+                ai_engine_client=FakeAiClient(),
+            )
         )
 
     app.dependency_overrides[get_db] = override_db

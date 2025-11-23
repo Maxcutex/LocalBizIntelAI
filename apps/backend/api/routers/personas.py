@@ -8,6 +8,7 @@ from repositories.demographics_repository import DemographicsRepository
 from repositories.labour_stats_repository import LabourStatsRepository
 from repositories.spending_repository import SpendingRepository
 from services.ai_engine_client import AiEngineClient
+from services.dependencies import PersonaServiceDependencies
 from services.persona_service import PersonaService
 
 router = APIRouter()
@@ -16,10 +17,12 @@ router = APIRouter()
 def get_persona_service() -> PersonaService:
     ai_engine_client = AiEngineClient(get_settings())
     return PersonaService(
-        demographics_repository=DemographicsRepository(),
-        spending_repository=SpendingRepository(),
-        labour_stats_repository=LabourStatsRepository(),
-        ai_engine_client=ai_engine_client,
+        PersonaServiceDependencies(
+            demographics_repository=DemographicsRepository(),
+            spending_repository=SpendingRepository(),
+            labour_stats_repository=LabourStatsRepository(),
+            ai_engine_client=ai_engine_client,
+        )
     )
 
 

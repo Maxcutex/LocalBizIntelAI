@@ -7,9 +7,7 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from api.schemas.reports import FeasibilityReportRequest
-from repositories.report_jobs_repository import ReportJobsRepository
-from services.billing_service import BillingService
-from services.pubsub_client import PubSubClient
+from services.dependencies import ReportServiceDependencies
 
 
 class ReportService:
@@ -17,13 +15,11 @@ class ReportService:
 
     def __init__(
         self,
-        report_jobs_repository: ReportJobsRepository,
-        billing_service: BillingService,
-        pubsub_client: PubSubClient,
+        dependencies: ReportServiceDependencies,
     ) -> None:
-        self._report_jobs_repository = report_jobs_repository
-        self._billing_service = billing_service
-        self._pubsub_client = pubsub_client
+        self._report_jobs_repository = dependencies.report_jobs_repository
+        self._billing_service = dependencies.billing_service
+        self._pubsub_client = dependencies.pubsub_client
 
     def create_feasibility_report(
         self,

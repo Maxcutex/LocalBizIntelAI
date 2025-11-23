@@ -4,10 +4,7 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
-from repositories.data_freshness_repository import DataFreshnessRepository
-from repositories.report_jobs_repository import ReportJobsRepository
-from repositories.tenant_repository import TenantRepository
-from repositories.user_repository import UserRepository
+from services.dependencies import AdminServiceDependencies
 
 
 class AdminService:
@@ -15,15 +12,12 @@ class AdminService:
 
     def __init__(
         self,
-        user_repository: UserRepository,
-        tenant_repository: TenantRepository,
-        data_freshness_repository: DataFreshnessRepository,
-        report_jobs_repository: ReportJobsRepository,
+        dependencies: AdminServiceDependencies,
     ) -> None:
-        self._user_repository = user_repository
-        self._tenant_repository = tenant_repository
-        self._data_freshness_repository = data_freshness_repository
-        self._report_jobs_repository = report_jobs_repository
+        self._user_repository = dependencies.user_repository
+        self._tenant_repository = dependencies.tenant_repository
+        self._data_freshness_repository = dependencies.data_freshness_repository
+        self._report_jobs_repository = dependencies.report_jobs_repository
 
     def list_users(
         self,

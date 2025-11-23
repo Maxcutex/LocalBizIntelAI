@@ -6,14 +6,14 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
-from services.pubsub_client import PubSubClient
+from services.dependencies import EtlOrchestrationServiceDependencies
 
 
 class ETLOrchestrationService:
     """Triggers and monitors ETL workflows from admin endpoints."""
 
-    def __init__(self, pubsub_client: PubSubClient) -> None:
-        self._pubsub_client = pubsub_client
+    def __init__(self, dependencies: EtlOrchestrationServiceDependencies) -> None:
+        self._pubsub_client = dependencies.pubsub_client
 
     def trigger_adhoc_etl(
         self,

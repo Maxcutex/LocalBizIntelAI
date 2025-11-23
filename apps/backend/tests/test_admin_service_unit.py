@@ -1,6 +1,7 @@
 from uuid import uuid4
 
 from services.admin_service import AdminService
+from services.dependencies import AdminServiceDependencies
 
 
 def test_admin_service_list_users_passes_filters():
@@ -48,10 +49,12 @@ def test_admin_service_list_users_passes_filters():
             raise AssertionError("not used")
 
     service = AdminService(
-        user_repository=FakeUserRepository(),
-        tenant_repository=DummyTenantRepository(),
-        data_freshness_repository=DummyDataFreshnessRepository(),
-        report_jobs_repository=DummyReportJobsRepository(),
+        AdminServiceDependencies(
+            user_repository=FakeUserRepository(),
+            tenant_repository=DummyTenantRepository(),
+            data_freshness_repository=DummyDataFreshnessRepository(),
+            report_jobs_repository=DummyReportJobsRepository(),
+        )
     )
     result = service.list_users(
         expected_db,
@@ -107,10 +110,12 @@ def test_admin_service_list_tenants_passes_filters():
             raise AssertionError("not used")
 
     service = AdminService(
-        user_repository=DummyUserRepository(),
-        tenant_repository=FakeTenantRepository(),
-        data_freshness_repository=DummyDataFreshnessRepository(),
-        report_jobs_repository=DummyReportJobsRepository(),
+        AdminServiceDependencies(
+            user_repository=DummyUserRepository(),
+            tenant_repository=FakeTenantRepository(),
+            data_freshness_repository=DummyDataFreshnessRepository(),
+            report_jobs_repository=DummyReportJobsRepository(),
+        )
     )
     result = service.list_tenants(
         expected_db, name_contains="Acme", plan="starter", limit=2, offset=0
@@ -157,10 +162,12 @@ def test_admin_service_list_dataset_freshness_calls_repo():
             raise AssertionError("not used")
 
     service = AdminService(
-        user_repository=DummyUserRepository(),
-        tenant_repository=DummyTenantRepository(),
-        data_freshness_repository=FakeDataFreshnessRepository(),
-        report_jobs_repository=DummyReportJobsRepository(),
+        AdminServiceDependencies(
+            user_repository=DummyUserRepository(),
+            tenant_repository=DummyTenantRepository(),
+            data_freshness_repository=FakeDataFreshnessRepository(),
+            report_jobs_repository=DummyReportJobsRepository(),
+        )
     )
     result = service.list_dataset_freshness(expected_db)
     assert result == ["df1", "df2"]
@@ -213,10 +220,12 @@ def test_admin_service_list_report_jobs_passes_filters():
             raise AssertionError("not used")
 
     service = AdminService(
-        user_repository=DummyUserRepository(),
-        tenant_repository=DummyTenantRepository(),
-        data_freshness_repository=DummyDataFreshnessRepository(),
-        report_jobs_repository=FakeReportJobsRepository(),
+        AdminServiceDependencies(
+            user_repository=DummyUserRepository(),
+            tenant_repository=DummyTenantRepository(),
+            data_freshness_repository=DummyDataFreshnessRepository(),
+            report_jobs_repository=FakeReportJobsRepository(),
+        )
     )
     result = service.list_report_jobs(
         expected_db,

@@ -3,6 +3,7 @@ from datetime import datetime
 import pytest
 from fastapi import HTTPException
 
+from services.dependencies import MarketServiceDependencies
 from services.market_service import MarketService
 
 
@@ -51,10 +52,12 @@ def test_get_demographics_by_region_maps_rows():
             raise AssertionError("not used")
 
     service = MarketService(
-        demographics_repository=FakeDemographicsRepository(),
-        business_density_repository=DummyBusinessDensityRepository(),
-        spending_repository=DummySpendingRepository(),
-        labour_stats_repository=DummyLabourStatsRepository(),
+        MarketServiceDependencies(
+            demographics_repository=FakeDemographicsRepository(),
+            business_density_repository=DummyBusinessDensityRepository(),
+            spending_repository=DummySpendingRepository(),
+            labour_stats_repository=DummyLabourStatsRepository(),
+        )
     )
     result = service.get_demographics_by_region(None, "Accra", None)
 
@@ -92,10 +95,12 @@ def test_get_demographics_by_region_raises_404_when_empty():
             raise AssertionError("not used")
 
     service = MarketService(
-        demographics_repository=FakeDemographicsRepository(),
-        business_density_repository=DummyBusinessDensityRepository(),
-        spending_repository=DummySpendingRepository(),
-        labour_stats_repository=DummyLabourStatsRepository(),
+        MarketServiceDependencies(
+            demographics_repository=FakeDemographicsRepository(),
+            business_density_repository=DummyBusinessDensityRepository(),
+            spending_repository=DummySpendingRepository(),
+            labour_stats_repository=DummyLabourStatsRepository(),
+        )
     )
 
     with pytest.raises(HTTPException) as exc_info:

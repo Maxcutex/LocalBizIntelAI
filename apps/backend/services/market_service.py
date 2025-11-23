@@ -7,10 +7,7 @@ from uuid import UUID
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from repositories.business_density_repository import BusinessDensityRepository
-from repositories.demographics_repository import DemographicsRepository
-from repositories.labour_stats_repository import LabourStatsRepository
-from repositories.spending_repository import SpendingRepository
+from services.dependencies import MarketServiceDependencies
 
 
 class MarketService:
@@ -24,15 +21,12 @@ class MarketService:
 
     def __init__(
         self,
-        demographics_repository: DemographicsRepository,
-        business_density_repository: BusinessDensityRepository,
-        spending_repository: SpendingRepository,
-        labour_stats_repository: LabourStatsRepository,
+        dependencies: MarketServiceDependencies,
     ) -> None:
-        self._demographics_repository = demographics_repository
-        self._business_density_repository = business_density_repository
-        self._spending_repository = spending_repository
-        self._labour_stats_repository = labour_stats_repository
+        self._demographics_repository = dependencies.demographics_repository
+        self._business_density_repository = dependencies.business_density_repository
+        self._spending_repository = dependencies.spending_repository
+        self._labour_stats_repository = dependencies.labour_stats_repository
 
     def list_cities(self, db_session: Session, country: str | None) -> list[str]:
         demographics_cities = self._demographics_repository.distinct_cities(

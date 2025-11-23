@@ -15,6 +15,7 @@ from repositories.billing_repository import BillingRepository
 from repositories.report_jobs_repository import ReportJobsRepository
 from repositories.usage_repository import UsageRepository
 from services.billing_service import BillingService
+from services.dependencies import BillingServiceDependencies, ReportServiceDependencies
 from services.pubsub_client import PubSubClient
 from services.report_service import ReportService
 from services.stripe_client import StripeClient
@@ -24,14 +25,18 @@ router = APIRouter()
 
 def get_report_service() -> ReportService:
     billing_service = BillingService(
-        billing_repository=BillingRepository(),
-        usage_repository=UsageRepository(),
-        stripe_client=StripeClient(),
+        BillingServiceDependencies(
+            billing_repository=BillingRepository(),
+            usage_repository=UsageRepository(),
+            stripe_client=StripeClient(),
+        )
     )
     return ReportService(
-        report_jobs_repository=ReportJobsRepository(),
-        billing_service=billing_service,
-        pubsub_client=PubSubClient(),
+        ReportServiceDependencies(
+            report_jobs_repository=ReportJobsRepository(),
+            billing_service=billing_service,
+            pubsub_client=PubSubClient(),
+        )
     )
 
 

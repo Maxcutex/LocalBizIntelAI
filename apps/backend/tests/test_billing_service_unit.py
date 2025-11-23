@@ -4,6 +4,7 @@ import pytest
 from fastapi import HTTPException
 
 from services.billing_service import BillingService
+from services.dependencies import BillingServiceDependencies
 
 
 def test_get_plan_and_usage_returns_none_plan_when_no_account():
@@ -23,9 +24,11 @@ def test_get_plan_and_usage_returns_none_plan_when_no_account():
             return {}
 
     service = BillingService(
-        billing_repository=FakeBillingRepository(),
-        usage_repository=FakeUsageRepository(),
-        stripe_client=DummyStripeClient(),
+        BillingServiceDependencies(
+            billing_repository=FakeBillingRepository(),
+            usage_repository=FakeUsageRepository(),
+            stripe_client=DummyStripeClient(),
+        )
     )
 
     result = service.get_plan_and_usage(db_session=None, tenant_id=uuid4())
@@ -53,9 +56,11 @@ def test_get_plan_and_usage_returns_plan_and_status_when_account_exists():
             return {}
 
     service = BillingService(
-        billing_repository=FakeBillingRepository(),
-        usage_repository=FakeUsageRepository(),
-        stripe_client=DummyStripeClient(),
+        BillingServiceDependencies(
+            billing_repository=FakeBillingRepository(),
+            usage_repository=FakeUsageRepository(),
+            stripe_client=DummyStripeClient(),
+        )
     )
 
     result = service.get_plan_and_usage(db_session=None, tenant_id=expected_tenant_id)
@@ -78,9 +83,11 @@ def test_create_checkout_session_raises_400_when_target_plan_empty():
             return {}
 
     service = BillingService(
-        billing_repository=DummyBillingRepository(),
-        usage_repository=DummyUsageRepository(),
-        stripe_client=DummyStripeClient(),
+        BillingServiceDependencies(
+            billing_repository=DummyBillingRepository(),
+            usage_repository=DummyUsageRepository(),
+            stripe_client=DummyStripeClient(),
+        )
     )
     with pytest.raises(HTTPException) as exc_info:
         service.create_checkout_session(
@@ -107,9 +114,11 @@ def test_create_checkout_session_calls_stripe_client():
             return {}
 
     service = BillingService(
-        billing_repository=DummyBillingRepository(),
-        usage_repository=DummyUsageRepository(),
-        stripe_client=FakeStripeClient(),
+        BillingServiceDependencies(
+            billing_repository=DummyBillingRepository(),
+            usage_repository=DummyUsageRepository(),
+            stripe_client=FakeStripeClient(),
+        )
     )
     result = service.create_checkout_session(
         db_session=None, tenant_id=expected_tenant_id, target_plan="starter"

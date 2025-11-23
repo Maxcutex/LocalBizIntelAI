@@ -5,14 +5,17 @@ from api.dependencies import CurrentRequestContext, get_current_request_context,
 from repositories.tenant_repository import TenantRepository
 from repositories.user_repository import UserRepository
 from services.auth_service import AuthService
+from services.dependencies import AuthServiceDependencies
 
 router = APIRouter()
 
 
 def get_auth_service() -> AuthService:
     return AuthService(
-        user_repository=UserRepository(),
-        tenant_repository=TenantRepository(),
+        AuthServiceDependencies(
+            user_repository=UserRepository(),
+            tenant_repository=TenantRepository(),
+        )
     )
 
 

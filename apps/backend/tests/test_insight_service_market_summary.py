@@ -3,6 +3,7 @@ from uuid import uuid4
 import pytest
 from fastapi import HTTPException
 
+from services.dependencies import InsightServiceDependencies
 from services.insight_service import InsightService
 
 
@@ -36,11 +37,13 @@ def test_generate_market_summary_merges_stats_and_ai():
             raise AssertionError("not used")
 
     service = InsightService(
-        demographics_repository=FakeDemographicsRepository(),
-        spending_repository=FakeSpendingRepository(),
-        labour_stats_repository=FakeLabourStatsRepository(),
-        opportunity_scores_repository=DummyOpportunityRepository(),
-        ai_engine_client=FakeAiClient(),
+        InsightServiceDependencies(
+            demographics_repository=FakeDemographicsRepository(),
+            spending_repository=FakeSpendingRepository(),
+            labour_stats_repository=FakeLabourStatsRepository(),
+            opportunity_scores_repository=DummyOpportunityRepository(),
+            ai_engine_client=FakeAiClient(),
+        )
     )
 
     result = service.generate_market_summary(
@@ -80,11 +83,13 @@ def test_generate_market_summary_raises_404_when_no_data():
             raise AssertionError("not used")
 
     service = InsightService(
-        demographics_repository=EmptyDemographicsRepository(),
-        spending_repository=EmptySpendingRepository(),
-        labour_stats_repository=EmptyLabourStatsRepository(),
-        opportunity_scores_repository=DummyOpportunityRepository(),
-        ai_engine_client=DummyAiClient(),
+        InsightServiceDependencies(
+            demographics_repository=EmptyDemographicsRepository(),
+            spending_repository=EmptySpendingRepository(),
+            labour_stats_repository=EmptyLabourStatsRepository(),
+            opportunity_scores_repository=DummyOpportunityRepository(),
+            ai_engine_client=DummyAiClient(),
+        )
     )
 
     with pytest.raises(HTTPException) as exc_info:

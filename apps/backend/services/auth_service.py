@@ -6,8 +6,7 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from api.schemas.core import TenantRead, UserRead
-from repositories.tenant_repository import TenantRepository
-from repositories.user_repository import UserRepository
+from services.dependencies import AuthServiceDependencies
 
 
 class AuthService:
@@ -15,11 +14,10 @@ class AuthService:
 
     def __init__(
         self,
-        user_repository: UserRepository,
-        tenant_repository: TenantRepository,
+        dependencies: AuthServiceDependencies,
     ) -> None:
-        self._user_repository = user_repository
-        self._tenant_repository = tenant_repository
+        self._user_repository = dependencies.user_repository
+        self._tenant_repository = dependencies.tenant_repository
 
     def get_current_user_profile(self, db_session: Session, user_id: UUID) -> dict:
         user = self._user_repository.get_by_id(db_session, user_id)

@@ -59,7 +59,7 @@ class Settings(BaseSettings):
         if raw_value is None:
             return []
 
-        stripped = raw_value.strip()
+        stripped = str(raw_value).strip()
         if not stripped:
             return []
 

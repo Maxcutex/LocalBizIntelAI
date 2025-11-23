@@ -1,5 +1,6 @@
 from uuid import uuid4
 
+from services.dependencies import MarketServiceDependencies
 from services.market_service import MarketService
 
 
@@ -21,10 +22,12 @@ def test_market_service_get_overview_combines_repository_outputs():
             return {"total_business_count": 200}
 
     service = MarketService(
-        demographics_repository=FakeDemographicsRepository(),
-        business_density_repository=FakeBusinessDensityRepository(),
-        spending_repository=FakeSpendingRepository(),
-        labour_stats_repository=FakeLabourStatsRepository(),
+        MarketServiceDependencies(
+            demographics_repository=FakeDemographicsRepository(),
+            business_density_repository=FakeBusinessDensityRepository(),
+            spending_repository=FakeSpendingRepository(),
+            labour_stats_repository=FakeLabourStatsRepository(),
+        )
     )
 
     overview = service.get_overview(

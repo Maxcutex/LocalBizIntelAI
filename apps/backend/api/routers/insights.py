@@ -14,6 +14,7 @@ from repositories.labour_stats_repository import LabourStatsRepository
 from repositories.opportunity_scores_repository import OpportunityScoresRepository
 from repositories.spending_repository import SpendingRepository
 from services.ai_engine_client import AiEngineClient
+from services.dependencies import InsightServiceDependencies
 from services.insight_service import InsightService
 
 router = APIRouter()
@@ -22,11 +23,13 @@ router = APIRouter()
 def get_insight_service() -> InsightService:
     ai_engine_client = AiEngineClient(get_settings())
     return InsightService(
-        demographics_repository=DemographicsRepository(),
-        spending_repository=SpendingRepository(),
-        labour_stats_repository=LabourStatsRepository(),
-        opportunity_scores_repository=OpportunityScoresRepository(),
-        ai_engine_client=ai_engine_client,
+        InsightServiceDependencies(
+            demographics_repository=DemographicsRepository(),
+            spending_repository=SpendingRepository(),
+            labour_stats_repository=LabourStatsRepository(),
+            opportunity_scores_repository=OpportunityScoresRepository(),
+            ai_engine_client=ai_engine_client,
+        )
     )
 
 

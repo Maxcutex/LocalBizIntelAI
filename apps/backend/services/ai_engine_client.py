@@ -13,9 +13,9 @@ from typing import Any
 from api.config import Settings
 
 try:
-    from openai import OpenAI as OpenAIClient  # type: ignore[import-untyped]
+    from openai import OpenAI as OPENAI_CLIENT_CLASS  # type: ignore[import-untyped]
 except ModuleNotFoundError:  # pragma: no cover
-    OpenAIClient = None  # type: ignore[assignment,misc]
+    OPENAI_CLIENT_CLASS = None  # type: ignore[assignment,misc]
 
 
 class AiEngineClient:
@@ -38,8 +38,8 @@ class AiEngineClient:
             self._openai_client = openai_client
         else:
             self._openai_client = None
-            if self._api_key and OpenAIClient is not None:
-                self._openai_client = OpenAIClient(
+            if self._api_key and OPENAI_CLIENT_CLASS is not None:
+                self._openai_client = OPENAI_CLIENT_CLASS(
                     api_key=self._api_key,
                     timeout=self._timeout_s,
                     max_retries=1,

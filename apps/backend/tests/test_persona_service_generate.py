@@ -3,6 +3,7 @@ from uuid import uuid4
 import pytest
 from fastapi import HTTPException
 
+from services.dependencies import PersonaServiceDependencies
 from services.persona_service import PersonaService
 
 
@@ -28,10 +29,12 @@ def test_generate_personas_calls_ai_client():
             return {"headline": "ai", "personas": []}
 
     service = PersonaService(
-        demographics_repository=FakeDemographicsRepository(),
-        spending_repository=EmptyRepository(),
-        labour_stats_repository=EmptyRepository(),
-        ai_engine_client=FakeAiClient(),
+        PersonaServiceDependencies(
+            demographics_repository=FakeDemographicsRepository(),
+            spending_repository=EmptyRepository(),
+            labour_stats_repository=EmptyRepository(),
+            ai_engine_client=FakeAiClient(),
+        )
     )
 
     result = service.generate_personas(
@@ -56,10 +59,12 @@ def test_generate_personas_raises_404_when_no_data():
             return {"headline": "unused", "personas": []}
 
     service = PersonaService(
-        demographics_repository=EmptyRepository(),
-        spending_repository=EmptyRepository(),
-        labour_stats_repository=EmptyRepository(),
-        ai_engine_client=DummyAiClient(),
+        PersonaServiceDependencies(
+            demographics_repository=EmptyRepository(),
+            spending_repository=EmptyRepository(),
+            labour_stats_repository=EmptyRepository(),
+            ai_engine_client=DummyAiClient(),
+        )
     )
 
     with pytest.raises(HTTPException) as exc_info:
