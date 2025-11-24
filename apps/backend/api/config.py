@@ -55,6 +55,7 @@ class Settings(BaseSettings):
 
     @property
     def cors_allowed_origins(self) -> list[str]:
+        """Parse `CORS_ALLOWED_ORIGINS` into a list of allowed origins."""
         raw_value = self.cors_allowed_origins_raw
         if raw_value is None:
             return []

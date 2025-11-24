@@ -1,3 +1,5 @@
+"""Unit tests for `MarketService.get_business_density`."""
+
 from datetime import datetime
 
 import pytest
@@ -8,7 +10,10 @@ from services.market_service import MarketService
 
 
 class FakeBusinessDensityRow:
+    """Row-like fixture representing a business density ORM row."""
+
     def __init__(self):
+        """Populate fixture fields."""
         self.geo_id = "accra-1"
         self.country = "GH"
         self.city = "Accra"
@@ -20,32 +25,50 @@ class FakeBusinessDensityRow:
 
 
 def test_get_business_density_maps_rows():
+    """Service maps ORM rows into response dicts."""
+
     class FakeBusinessDensityRepository:
-        def list_by_city_and_type(self, db_session, city, country, business_type):
+        """Fake density repository returning one row."""
+
+        def list_by_city_and_type(self, _db_session, _city, _country, _business_type):
+            """Return canned density rows."""
             return [FakeBusinessDensityRow()]
 
     class DummyDemographicsRepository:
-        def distinct_cities(self, db_session, country):
+        """Stub demographics repository (unused)."""
+
+        def distinct_cities(self, _db_session, _country):
+            """Not used in this test."""
             raise AssertionError("not used")
 
-        def list_by_city(self, db_session, city, country):
+        def list_by_city(self, _db_session, _city, _country):
+            """Not used in this test."""
             raise AssertionError("not used")
 
-        def get_city_aggregates(self, db_session, city, country):
+        def get_city_aggregates(self, _db_session, _city, _country):
+            """Not used in this test."""
             raise AssertionError("not used")
 
     class DummySpendingRepository:
-        def get_for_regions(self, db_session, city, country):
+        """Stub spending repository (unused)."""
+
+        def get_for_regions(self, _db_session, _city, _country):
+            """Not used in this test."""
             raise AssertionError("not used")
 
-        def get_city_aggregates(self, db_session, city, country):
+        def get_city_aggregates(self, _db_session, _city, _country):
+            """Not used in this test."""
             raise AssertionError("not used")
 
     class DummyLabourStatsRepository:
-        def get_for_regions(self, db_session, city, country):
+        """Stub labour stats repository (unused)."""
+
+        def get_for_regions(self, _db_session, _city, _country):
+            """Not used in this test."""
             raise AssertionError("not used")
 
-        def get_city_aggregates(self, db_session, city, country):
+        def get_city_aggregates(self, _db_session, _city, _country):
+            """Not used in this test."""
             raise AssertionError("not used")
 
     service = MarketService(
@@ -63,32 +86,50 @@ def test_get_business_density_maps_rows():
 
 
 def test_get_business_density_raises_404_when_empty():
+    """Empty density results raise 404."""
+
     class FakeBusinessDensityRepository:
-        def list_by_city_and_type(self, db_session, city, country, business_type):
+        """Fake density repository returning no rows."""
+
+        def list_by_city_and_type(self, _db_session, _city, _country, _business_type):
+            """Return empty list."""
             return []
 
     class DummyDemographicsRepository:
-        def distinct_cities(self, db_session, country):
+        """Stub demographics repository (unused)."""
+
+        def distinct_cities(self, _db_session, _country):
+            """Not used in this test."""
             raise AssertionError("not used")
 
-        def list_by_city(self, db_session, city, country):
+        def list_by_city(self, _db_session, _city, _country):
+            """Not used in this test."""
             raise AssertionError("not used")
 
-        def get_city_aggregates(self, db_session, city, country):
+        def get_city_aggregates(self, _db_session, _city, _country):
+            """Not used in this test."""
             raise AssertionError("not used")
 
     class DummySpendingRepository:
-        def get_for_regions(self, db_session, city, country):
+        """Stub spending repository (unused)."""
+
+        def get_for_regions(self, _db_session, _city, _country):
+            """Not used in this test."""
             raise AssertionError("not used")
 
-        def get_city_aggregates(self, db_session, city, country):
+        def get_city_aggregates(self, _db_session, _city, _country):
+            """Not used in this test."""
             raise AssertionError("not used")
 
     class DummyLabourStatsRepository:
-        def get_for_regions(self, db_session, city, country):
+        """Stub labour stats repository (unused)."""
+
+        def get_for_regions(self, _db_session, _city, _country):
+            """Not used in this test."""
             raise AssertionError("not used")
 
-        def get_city_aggregates(self, db_session, city, country):
+        def get_city_aggregates(self, _db_session, _city, _country):
+            """Not used in this test."""
             raise AssertionError("not used")
 
     service = MarketService(

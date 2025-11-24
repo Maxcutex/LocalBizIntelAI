@@ -18,6 +18,7 @@ from api.config import get_settings
 
 
 def ensure_database_exists() -> None:
+    """Create the configured Postgres database if missing."""
     settings = get_settings()
 
     # Connect to the server-level "postgres" database to manage databases
@@ -52,6 +53,7 @@ def ensure_database_exists() -> None:
 
 
 def main() -> None:
+    """CLI entrypoint for database bootstrap."""
     ensure_database_exists()
 
 

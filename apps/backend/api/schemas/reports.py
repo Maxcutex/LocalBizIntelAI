@@ -8,17 +8,23 @@ from pydantic.config import ConfigDict
 
 
 class FeasibilityReportRequest(BaseModel):
+    """Request payload for creating a feasibility report job."""
+
     city: str = Field(min_length=1)
     country: str = Field(min_length=1)
     business_type: str = Field(min_length=1)
 
 
 class FeasibilityReportResponse(BaseModel):
+    """Response payload after enqueuing a feasibility report job."""
+
     job_id: str
     status: str
 
 
 class ReportJobRead(BaseModel):
+    """Report job response schema."""
+
     id: UUID
     city: str
     country: str
@@ -33,8 +39,12 @@ class ReportJobRead(BaseModel):
 
 
 class ReportsListResponse(BaseModel):
+    """List response for tenant report jobs."""
+
     reports: list[ReportJobRead]
 
 
 class ReportGetResponse(BaseModel):
+    """Get response for a single report job."""
+
     report: ReportJobRead

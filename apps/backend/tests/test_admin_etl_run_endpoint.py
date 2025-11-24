@@ -1,3 +1,5 @@
+"""HTTP endpoint tests for admin ETL trigger route."""
+
 from uuid import uuid4
 
 from api.dependencies import CurrentRequestContext, get_current_request_context, get_db
@@ -6,21 +8,26 @@ from api.routers import etl as etl_router
 
 
 def override_db():
+    """Provide a dummy DB session for dependency overrides."""
+
     class DummySession:
-        pass
+        """Stub SQLAlchemy session."""
 
     yield DummySession()
 
 
 def test_admin_trigger_etl_success_and_payload_passed():
+    """`POST /admin/etl/run` publishes ETL payload for admin user."""
     app = create_app()
     expected_tenant_id = uuid4()
     expected_user_id = uuid4()
 
     class FakeEtlService:
+        """Fake ETL orchestration service asserting inputs."""
+
         def trigger_adhoc_etl(
             self,
-            db_session,
+            _db_session,
             dataset,
             country,
             city,
@@ -28,6 +35,7 @@ def test_admin_trigger_etl_success_and_payload_passed():
             triggered_by_user_id,
             triggered_by_tenant_id,
         ):
+            """Return a canned queued response."""
             assert dataset == "demographics"
             assert country == "GH"
             assert city == "Accra"
@@ -45,13 +53,19 @@ def test_admin_trigger_etl_success_and_payload_passed():
             }
 
     def override_context():
+        """Provide a fake admin request context."""
         return CurrentRequestContext(
             user_id=expected_user_id, tenant_id=expected_tenant_id, role="ADMIN"
         )
 
     app.dependency_overrides[get_db] = override_db
     app.dependency_overrides[get_current_request_context] = override_context
-    app.dependency_overrides[etl_router.get_etl_service] = lambda: FakeEtlService()
+
+    def override_etl_service():
+        """Provide the fake ETL service."""
+        return FakeEtlService()
+
+    app.dependency_overrides[etl_router.get_etl_service] = override_etl_service
 
     from fastapi.testclient import TestClient
 
@@ -73,18 +87,28 @@ def test_admin_trigger_etl_success_and_payload_passed():
 
 
 def test_admin_trigger_etl_requires_admin_role():
+    """Non-admin users are forbidden from triggering ETL."""
     app = create_app()
 
     class FakeEtlService:
-        def trigger_adhoc_etl(self, *args, **kwargs):
+        """Fake ETL service used only to satisfy dependency."""
+
+        def trigger_adhoc_etl(self, *_args, **_kwargs):
+            """Return a canned queued response."""
             return {"status": "QUEUED", "payload": {}}
 
     def override_context():
+        """Provide a fake non-admin request context."""
         return CurrentRequestContext(user_id=uuid4(), tenant_id=uuid4(), role="USER")
 
     app.dependency_overrides[get_db] = override_db
     app.dependency_overrides[get_current_request_context] = override_context
-    app.dependency_overrides[etl_router.get_etl_service] = lambda: FakeEtlService()
+
+    def override_etl_service():
+        """Provide the fake ETL service."""
+        return FakeEtlService()
+
+    app.dependency_overrides[etl_router.get_etl_service] = override_etl_service
 
     from fastapi.testclient import TestClient
 

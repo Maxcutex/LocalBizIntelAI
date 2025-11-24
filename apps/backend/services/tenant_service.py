@@ -16,6 +16,11 @@ class TenantService:
         self._tenant_repository = dependencies.tenant_repository
 
     def get_current_tenant(self, db_session: Session, tenant_id: UUID) -> TenantRead:
+        """
+        Return the current tenant for the authenticated request context.
+
+        Raises 404 if the tenant is missing.
+        """
         tenant = self._tenant_repository.get_by_id(db_session, tenant_id)
         if tenant is None:
             raise HTTPException(

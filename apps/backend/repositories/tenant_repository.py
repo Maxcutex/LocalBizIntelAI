@@ -13,6 +13,7 @@ class TenantRepository:
     """Data access for `tenants` table."""
 
     def get_by_id(self, db_session: Session, tenant_id: UUID) -> Tenant | None:
+        """Get a tenant by id, returning None if it does not exist."""
         return db_session.get(Tenant, tenant_id)
 
     def admin_list(
@@ -23,6 +24,15 @@ class TenantRepository:
         limit: int = 100,
         offset: int = 0,
     ) -> list[Tenant]:
+        """
+        Admin listing of tenants with optional filters and pagination.
+
+        Args:
+            name_contains: Optional substring match for tenant name.
+            plan: Optional plan filter.
+            limit: Max number of results.
+            offset: Pagination offset.
+        """
         query: Select = select(Tenant)
         if plan:
             query = query.where(Tenant.plan == plan)

@@ -10,6 +10,8 @@ from .db import Base
 
 
 class ReportJob(Base):
+    """Report job ORM model that tracks feasibility report generation."""
+
     __tablename__ = "report_jobs"
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -29,6 +31,8 @@ class ReportJob(Base):
 
 
 class ReportSection(Base):
+    """Report section ORM model storing generated report content."""
+
     __tablename__ = "report_sections"
 
     id: Mapped[uuid.UUID] = mapped_column(

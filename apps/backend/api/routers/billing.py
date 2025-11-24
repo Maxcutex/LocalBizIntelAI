@@ -77,7 +77,9 @@ def create_checkout_session(
     summary="List available plans",
     status_code=status.HTTP_501_NOT_IMPLEMENTED,
 )
-def list_plans(billing_service: BillingService = Depends(get_billing_service)) -> dict:
+def list_plans(
+    _billing_service: BillingService = Depends(get_billing_service),
+) -> dict:
     """
     Return available subscription plans.
     """
@@ -89,7 +91,9 @@ def list_plans(billing_service: BillingService = Depends(get_billing_service)) -
     summary="Get current usage",
     status_code=status.HTTP_501_NOT_IMPLEMENTED,
 )
-def get_usage(billing_service: BillingService = Depends(get_billing_service)) -> dict:
+def get_usage(
+    _billing_service: BillingService = Depends(get_billing_service),
+) -> dict:
     """
     Return current tenant usage and quotas.
     """

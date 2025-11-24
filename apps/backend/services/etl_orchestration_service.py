@@ -25,6 +25,17 @@ class ETLOrchestrationService:
         triggered_by_user_id: UUID,
         triggered_by_tenant_id: UUID,
     ) -> dict[str, Any]:
+        """
+        Publish a request to run an ad-hoc ETL job.
+
+        Args:
+            dataset: Dataset identifier to ingest (e.g., "demographics").
+            country: Optional country filter for ingestion.
+            city: Optional city filter for ingestion.
+            options: Optional provider/job options.
+            triggered_by_user_id: Admin user triggering the run.
+            triggered_by_tenant_id: Tenant of the admin user.
+        """
         now = datetime.now(timezone.utc)
         payload: dict[str, Any] = {
             "dataset": dataset,

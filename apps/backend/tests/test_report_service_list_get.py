@@ -1,3 +1,5 @@
+"""Unit tests for `ReportService` list/get behaviors."""
+
 from uuid import uuid4
 
 import pytest
@@ -8,25 +10,38 @@ from services.report_service import ReportService
 
 
 class FakeJob:
+    """Minimal report job fixture."""
+
     def __init__(self, job_id):
+        """Create fixture with id attribute."""
         self.id = job_id
 
 
 def test_list_reports_returns_jobs_for_tenant():
+    """Listing reports returns repository results for tenant."""
     tenant_id = uuid4()
     jobs = [FakeJob(uuid4())]
 
     class FakeRepo:
-        def list_by_tenant(self, db_session, requested_tenant_id):
+        """Fake report jobs repository."""
+
+        def list_by_tenant(self, _db_session, requested_tenant_id):
+            """Return canned jobs."""
             assert requested_tenant_id == tenant_id
             return jobs
 
     class DummyBillingService:
-        def check_report_quota(self, db_session, tenant_id):
+        """Stub billing service."""
+
+        def check_report_quota(self, _db_session, _tenant_id):
+            """Not used in this test."""
             raise AssertionError("not used")
 
     class DummyPubSubClient:
-        def publish_report_job(self, topic, message):
+        """Stub Pub/Sub client."""
+
+        def publish_report_job(self, _topic, _message):
+            """Not used in this test."""
             raise AssertionError("not used")
 
     service = ReportService(
@@ -42,16 +57,27 @@ def test_list_reports_returns_jobs_for_tenant():
 
 
 def test_get_report_raises_404_when_missing():
+    """Missing report raises 404."""
+
     class FakeRepo:
-        def get_for_tenant(self, db_session, report_id, tenant_id):
+        """Fake report jobs repository returning no report."""
+
+        def get_for_tenant(self, _db_session, _report_id, _tenant_id):
+            """Return None for any lookup."""
             return None
 
     class DummyBillingService:
-        def check_report_quota(self, db_session, tenant_id):
+        """Stub billing service."""
+
+        def check_report_quota(self, _db_session, _tenant_id):
+            """Not used in this test."""
             raise AssertionError("not used")
 
     class DummyPubSubClient:
-        def publish_report_job(self, topic, message):
+        """Stub Pub/Sub client."""
+
+        def publish_report_job(self, _topic, _message):
+            """Not used in this test."""
             raise AssertionError("not used")
 
     service = ReportService(

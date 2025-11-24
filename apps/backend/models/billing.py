@@ -10,6 +10,8 @@ from .db import Base
 
 
 class BillingAccount(Base):
+    """Billing account ORM model for tenant subscription state."""
+
     __tablename__ = "billing_accounts"
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -28,6 +30,8 @@ class BillingAccount(Base):
 
 
 class UsageRecord(Base):
+    """Usage record ORM model for metering tenant activity."""
+
     __tablename__ = "usage_records"
 
     id: Mapped[uuid.UUID] = mapped_column(

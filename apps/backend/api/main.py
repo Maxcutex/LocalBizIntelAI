@@ -1,3 +1,5 @@
+"""FastAPI application factory and router wiring."""
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 

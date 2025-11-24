@@ -10,6 +10,8 @@ from .db import Base
 
 
 class Tenant(Base):
+    """Tenant/workspace ORM model."""
+
     __tablename__ = "tenants"
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -24,6 +26,8 @@ class Tenant(Base):
 
 
 class User(Base):
+    """User ORM model belonging to a tenant."""
+
     __tablename__ = "users"
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -41,6 +45,8 @@ class User(Base):
 
 
 class Organization(Base):
+    """Organization ORM model associated with a tenant."""
+
     __tablename__ = "organizations"
 
     id: Mapped[uuid.UUID] = mapped_column(

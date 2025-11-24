@@ -13,6 +13,7 @@ class DataFreshnessRepository:
     """Data access for `data_freshness` table."""
 
     def list_all(self, db_session: Session) -> list[DataFreshness]:
+        """List all dataset freshness records ordered by dataset name."""
         query: Select = select(DataFreshness).order_by(DataFreshness.dataset_name.asc())
         result = db_session.execute(query).scalars().all()
         return cast(list[DataFreshness], list(result))
@@ -25,6 +26,15 @@ class DataFreshnessRepository:
         row_count: int,
         status: str,
     ) -> DataFreshness:
+        """
+        Insert or update freshness status for a dataset.
+
+        Args:
+            dataset_name: Canonical dataset identifier (e.g., "demographics").
+            last_run: Timestamp of the ETL run.
+            row_count: Rows written/updated in the run.
+            status: Status string (e.g., "SUCCESS", "FAILED").
+        """
         last_run_value = last_run.isoformat()
         existing = (
             db_session.execute(

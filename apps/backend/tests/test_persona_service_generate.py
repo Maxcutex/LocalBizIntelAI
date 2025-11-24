@@ -1,3 +1,5 @@
+"""Unit tests for `PersonaService.generate_personas`."""
+
 from uuid import uuid4
 
 import pytest
@@ -8,6 +10,8 @@ from services.persona_service import PersonaService
 
 
 class FakeDemographicsRow:
+    """Row-like fixture representing a demographics ORM row."""
+
     geo_id = "accra-1"
     population_total = 1000
     median_income = 200
@@ -15,16 +19,27 @@ class FakeDemographicsRow:
 
 
 def test_generate_personas_calls_ai_client():
+    """Service calls AI client and returns personas payload."""
+
     class FakeDemographicsRepository:
-        def get_for_regions(self, db_session, city, country):
+        """Fake demographics repository returning one row."""
+
+        def get_for_regions(self, _db_session, _city, _country):
+            """Return canned demographics rows."""
             return [FakeDemographicsRow()]
 
     class EmptyRepository:
-        def get_for_regions(self, db_session, city, country):
+        """Stub repository returning no rows."""
+
+        def get_for_regions(self, _db_session, _city, _country):
+            """Return empty list."""
             return []
 
     class FakeAiClient:
+        """Fake AI client asserting on input payload."""
+
         def generate_personas(self, input_payload):
+            """Return canned personas."""
             assert input_payload["city"] == "Accra"
             return {"headline": "ai", "personas": []}
 
@@ -50,12 +65,20 @@ def test_generate_personas_calls_ai_client():
 
 
 def test_generate_personas_raises_404_when_no_data():
+    """Empty datasets raise 404."""
+
     class EmptyRepository:
-        def get_for_regions(self, db_session, city, country):
+        """Stub repository returning no rows."""
+
+        def get_for_regions(self, _db_session, _city, _country):
+            """Return empty list."""
             return []
 
     class DummyAiClient:
-        def generate_personas(self, input_payload):
+        """Stub AI client (unused)."""
+
+        def generate_personas(self, _input_payload):
+            """Return placeholder personas."""
             return {"headline": "unused", "personas": []}
 
     service = PersonaService(

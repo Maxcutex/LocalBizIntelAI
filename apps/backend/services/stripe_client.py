@@ -7,9 +7,12 @@ from typing import Any
 
 
 class StripeClient:
+    """Client wrapper for Stripe billing flows (stubbed for local dev)."""
+
     def create_checkout_session(
         self, tenant_id: str, target_plan: str
     ) -> dict[str, Any]:
+        """Create a checkout-session payload for a tenant plan change."""
         return {
             "checkout_session_id": "cs_test_123",
             "url": "https://checkout.stripe.local/session/cs_test_123",

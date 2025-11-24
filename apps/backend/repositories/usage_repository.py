@@ -1,6 +1,6 @@
 """Usage repository implementation."""
 
-from typing import Any
+from typing import Any, Iterable, cast
 from uuid import UUID
 
 from sqlalchemy import Select, func, select
@@ -24,4 +24,5 @@ class UsageRepository:
         )
 
         rows = db_session.execute(query).all()
-        return {metric: quantity for metric, quantity in rows}
+        typed_rows = cast(Iterable[tuple[str, Any]], rows)
+        return dict(typed_rows)

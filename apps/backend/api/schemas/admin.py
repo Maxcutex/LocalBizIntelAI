@@ -11,14 +11,20 @@ from api.schemas.reports import ReportJobRead
 
 
 class AdminUsersListResponse(BaseModel):
+    """Admin response schema for listing users."""
+
     users: list[UserRead]
 
 
 class AdminTenantsListResponse(BaseModel):
+    """Admin response schema for listing tenants."""
+
     tenants: list[TenantRead]
 
 
 class DataFreshnessRead(BaseModel):
+    """Admin read schema for dataset freshness records."""
+
     id: UUID
     dataset_name: str
     last_run: datetime | None = None
@@ -29,8 +35,12 @@ class DataFreshnessRead(BaseModel):
 
 
 class AdminDatasetsListResponse(BaseModel):
+    """Admin response schema for listing dataset freshness."""
+
     datasets: list[DataFreshnessRead]
 
 
 class AdminReportJobsListResponse(BaseModel):
+    """Admin response schema for listing report jobs."""
+
     report_jobs: list[ReportJobRead]

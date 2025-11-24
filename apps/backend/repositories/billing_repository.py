@@ -18,6 +18,7 @@ class BillingRepository:
     def get_billing_account(
         self, db_session: Session, tenant_id: UUID
     ) -> BillingAccount | None:
+        """Get the billing account row for a tenant, or None if missing."""
         query: Select = select(BillingAccount).where(
             BillingAccount.tenant_id == tenant_id
         )

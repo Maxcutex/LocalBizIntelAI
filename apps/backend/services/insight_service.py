@@ -196,6 +196,7 @@ class InsightService:
             }
 
         # tenant_id accepted for future tenant scoping, unused for now.
+        _ = tenant_id
         return {
             "city": city,
             "country": country,

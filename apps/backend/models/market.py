@@ -10,6 +10,8 @@ from .db import Base
 
 
 class Demographics(Base):
+    """Demographics ORM model for a geographic region within a city."""
+
     __tablename__ = "demographics"
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -35,6 +37,8 @@ class Demographics(Base):
 
 
 class Spending(Base):
+    """Spending ORM model capturing category spend metrics per region."""
+
     __tablename__ = "spending"
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -55,6 +59,8 @@ class Spending(Base):
 
 
 class LabourStats(Base):
+    """Labour statistics ORM model per region."""
+
     __tablename__ = "labour_stats"
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -78,6 +84,8 @@ class LabourStats(Base):
 
 
 class BusinessDensity(Base):
+    """Business density ORM model per business type and region."""
+
     __tablename__ = "business_density"
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -100,6 +108,8 @@ class BusinessDensity(Base):
 
 
 class OpportunityScore(Base):
+    """Opportunity score ORM model used for ranking regions."""
+
     __tablename__ = "opportunity_scores"
 
     id: Mapped[uuid.UUID] = mapped_column(

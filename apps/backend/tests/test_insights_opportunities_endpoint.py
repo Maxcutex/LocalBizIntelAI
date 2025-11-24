@@ -1,3 +1,5 @@
+"""HTTP endpoint tests for opportunity finder insights route."""
+
 from uuid import UUID, uuid4
 
 from api.dependencies import CurrentRequestContext, get_current_request_context, get_db
@@ -6,26 +8,32 @@ from api.routers import insights as insights_router
 
 
 def override_db():
+    """Provide a dummy DB session for dependency overrides."""
+
     class DummySession:
-        pass
+        """Stub SQLAlchemy session."""
 
     yield DummySession()
 
 
 def test_generate_opportunities_success():
+    """`POST /insights/opportunities` returns opportunities with valid auth."""
     app = create_app()
     expected_tenant_id = uuid4()
 
     class FakeInsightService:
+        """Fake insight service asserting on input."""
+
         def find_opportunities(
             self,
-            db_session,
+            _db_session,
             city: str,
             business_type: str | None,
             constraints: dict | None,
             country: str | None,
             tenant_id: UUID,
         ):
+            """Return canned opportunities response."""
             assert city == "Accra"
             assert business_type == "retail"
             assert constraints == {"min_composite_score": 0.5}
@@ -44,12 +52,18 @@ def test_generate_opportunities_success():
             }
 
     def override_context():
+        """Provide fake request context with tenant id."""
         return CurrentRequestContext(user_id=uuid4(), tenant_id=expected_tenant_id)
 
     app.dependency_overrides[get_db] = override_db
     app.dependency_overrides[get_current_request_context] = override_context
+
+    def override_insight_service():
+        """Provide the fake insight service."""
+        return FakeInsightService()
+
     app.dependency_overrides[insights_router.get_insight_service] = (
-        lambda: FakeInsightService()
+        override_insight_service
     )
 
     from fastapi.testclient import TestClient
@@ -70,6 +84,7 @@ def test_generate_opportunities_success():
 
 
 def test_generate_opportunities_missing_headers_returns_401():
+    """Missing auth headers yields 401."""
     app = create_app()
     app.dependency_overrides[get_db] = override_db
 

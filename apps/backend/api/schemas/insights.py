@@ -6,12 +6,16 @@ from pydantic import BaseModel, Field
 
 
 class MarketSummaryRequest(BaseModel):
+    """Request payload for `/insights/market-summary`."""
+
     city: str = Field(min_length=1)
     country: str | None = None
     regions: list[str] | None = None
 
 
 class MarketSummaryResponse(BaseModel):
+    """Response payload for market summary insights."""
+
     city: str
     country: str | None
     stats: dict[str, Any]
@@ -20,6 +24,8 @@ class MarketSummaryResponse(BaseModel):
 
 
 class OpportunitiesRequest(BaseModel):
+    """Request payload for `/insights/opportunities`."""
+
     city: str = Field(min_length=1)
     country: str | None = None
     business_type: str | None = None
@@ -27,6 +33,8 @@ class OpportunitiesRequest(BaseModel):
 
 
 class OpportunitiesResponse(BaseModel):
+    """Response payload for opportunity finder insights."""
+
     city: str
     country: str | None
     business_type: str | None

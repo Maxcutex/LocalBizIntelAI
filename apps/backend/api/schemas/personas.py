@@ -6,6 +6,8 @@ from pydantic import BaseModel, Field
 
 
 class PersonaGenerateRequest(BaseModel):
+    """Request payload for `/personas/generate`."""
+
     city: str = Field(min_length=1)
     country: str | None = None
     geo_ids: list[str] | None = None
@@ -13,6 +15,8 @@ class PersonaGenerateRequest(BaseModel):
 
 
 class PersonaGenerateResponse(BaseModel):
+    """Response payload for generated personas."""
+
     city: str
     country: str | None
     business_type: str | None

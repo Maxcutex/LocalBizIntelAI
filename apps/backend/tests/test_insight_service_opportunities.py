@@ -1,3 +1,5 @@
+"""Unit tests for `InsightService.find_opportunities`."""
+
 from uuid import uuid4
 
 import pytest
@@ -8,7 +10,10 @@ from services.insight_service import InsightService
 
 
 class FakeOpportunityRow:
+    """Row-like fixture representing an opportunity score ORM row."""
+
     def __init__(self, geo_id: str, composite_score: float, competition_score: float):
+        """Populate fixture fields."""
         self.geo_id = geo_id
         self.country = "GH"
         self.city = "Accra"
@@ -21,30 +26,47 @@ class FakeOpportunityRow:
 
 
 def test_find_opportunities_applies_constraints_and_ranks():
+    """Constraints filter regions and results are ranked by score."""
+
     class FakeOpportunityRepository:
+        """Fake opportunity repository returning two rows."""
+
         def list_by_city_and_business_type(
-            self, db_session, city, country, business_type
+            self, _db_session, _city, _country, _business_type
         ):
+            """Return canned rows."""
             return [
                 FakeOpportunityRow("accra-1", 0.9, 0.2),
                 FakeOpportunityRow("accra-2", 0.4, 0.1),
             ]
 
     class FakeAiClient:
+        """Fake AI client returning canned commentary."""
+
         def generate_opportunity_commentary(self, ranked_regions):
+            """Return commentary for ranked regions."""
             assert len(ranked_regions) == 1
             return {"commentary": "ai"}
 
     class DummyDemographicsRepository:
-        def get_for_regions(self, db_session, city, country):
+        """Stub demographics repository (unused)."""
+
+        def get_for_regions(self, _db_session, _city, _country):
+            """Return empty list."""
             return []
 
     class DummySpendingRepository:
-        def get_for_regions(self, db_session, city, country):
+        """Stub spending repository (unused)."""
+
+        def get_for_regions(self, _db_session, _city, _country):
+            """Return empty list."""
             return []
 
     class DummyLabourStatsRepository:
-        def get_for_regions(self, db_session, city, country):
+        """Stub labour stats repository (unused)."""
+
+        def get_for_regions(self, _db_session, _city, _country):
+            """Return empty list."""
             return []
 
     service = InsightService(
@@ -72,26 +94,44 @@ def test_find_opportunities_applies_constraints_and_ranks():
 
 
 def test_find_opportunities_raises_404_when_empty():
+    """Empty opportunity list raises 404."""
+
     class EmptyOpportunityRepository:
+        """Fake opportunity repository returning no rows."""
+
         def list_by_city_and_business_type(
-            self, db_session, city, country, business_type
+            self, _db_session, _city, _country, _business_type
         ):
+            """Return empty list."""
             return []
 
     class DummyDemographicsRepository:
-        def get_for_regions(self, db_session, city, country):
+        """Stub demographics repository (unused)."""
+
+        def get_for_regions(self, _db_session, _city, _country):
+            """Return empty list."""
             return []
 
     class DummySpendingRepository:
-        def get_for_regions(self, db_session, city, country):
+        """Stub spending repository (unused)."""
+
+        def get_for_regions(self, _db_session, _city, _country):
+            """Return empty list."""
             return []
 
     class DummyLabourStatsRepository:
-        def get_for_regions(self, db_session, city, country):
+        """Stub labour stats repository (unused)."""
+
+        def get_for_regions(self, _db_session, _city, _country):
+            """Return empty list."""
             return []
 
     class DummyAiClient:
+        """Stub AI client (unused)."""
+
         def generate_opportunity_commentary(self, ranked_regions):
+            """Return placeholder commentary."""
+            _ = ranked_regions
             return {"commentary": "unused"}
 
     service = InsightService(
@@ -118,29 +158,47 @@ def test_find_opportunities_raises_404_when_empty():
 
 
 def test_find_opportunities_sorts_and_falls_back_when_ai_fails():
+    """AI failures do not prevent sorted results from returning."""
+
     class FakeOpportunityRepository:
+        """Fake opportunity repository returning two rows."""
+
         def list_by_city_and_business_type(
-            self, db_session, city, country, business_type
+            self, _db_session, _city, _country, _business_type
         ):
+            """Return canned rows."""
             return [
                 FakeOpportunityRow("accra-low", 0.3, 0.2),
                 FakeOpportunityRow("accra-high", 0.9, 0.5),
             ]
 
     class FailingAiClient:
+        """Fake AI client that always errors."""
+
         def generate_opportunity_commentary(self, ranked_regions):
+            """Raise to simulate AI outage."""
+            _ = ranked_regions
             raise RuntimeError("boom")
 
     class DummyDemographicsRepository:
-        def get_for_regions(self, db_session, city, country):
+        """Stub demographics repository (unused)."""
+
+        def get_for_regions(self, _db_session, _city, _country):
+            """Return empty list."""
             return []
 
     class DummySpendingRepository:
-        def get_for_regions(self, db_session, city, country):
+        """Stub spending repository (unused)."""
+
+        def get_for_regions(self, _db_session, _city, _country):
+            """Return empty list."""
             return []
 
     class DummyLabourStatsRepository:
-        def get_for_regions(self, db_session, city, country):
+        """Stub labour stats repository (unused)."""
+
+        def get_for_regions(self, _db_session, _city, _country):
+            """Return empty list."""
             return []
 
     service = InsightService(

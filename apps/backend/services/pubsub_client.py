@@ -10,11 +10,13 @@ class PubSubClient:
     """Publish messages to background worker topics."""
 
     def publish_report_job(self, topic: str, message: dict[str, Any]) -> None:
+        """Publish a report job message to a background worker topic."""
         # TODO: Implement real publish. For now this is a no-op stub.
         _ = topic
         _ = message
 
     def publish_ingestion_job(self, topic: str, message: dict[str, Any]) -> None:
+        """Publish an ingestion/ETL job message to a background worker topic."""
         # TODO: Implement real publish. For now this is a no-op stub.
         _ = topic
         _ = message

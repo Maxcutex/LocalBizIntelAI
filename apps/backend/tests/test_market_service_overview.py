@@ -1,3 +1,5 @@
+"""Unit tests for `MarketService.get_overview` aggregation."""
+
 from uuid import uuid4
 
 from services.dependencies import MarketServiceDependencies
@@ -5,20 +7,34 @@ from services.market_service import MarketService
 
 
 def test_market_service_get_overview_combines_repository_outputs():
+    """Overview combines aggregates from all repositories."""
+
     class FakeDemographicsRepository:
-        def get_city_aggregates(self, db_session, city, country):
+        """Fake demographics repository."""
+
+        def get_city_aggregates(self, _db_session, _city, _country):
+            """Return canned demographics aggregates."""
             return {"population_total": 1000}
 
     class FakeSpendingRepository:
-        def get_city_aggregates(self, db_session, city, country):
+        """Fake spending repository."""
+
+        def get_city_aggregates(self, _db_session, _city, _country):
+            """Return canned spending aggregates."""
             return {"avg_monthly_spend": 120.0}
 
     class FakeLabourStatsRepository:
-        def get_city_aggregates(self, db_session, city, country):
+        """Fake labour stats repository."""
+
+        def get_city_aggregates(self, _db_session, _city, _country):
+            """Return canned labour aggregates."""
             return {"avg_unemployment_rate": 0.05}
 
     class FakeBusinessDensityRepository:
-        def get_summary(self, db_session, city, country):
+        """Fake business density repository."""
+
+        def get_summary(self, _db_session, _city, _country):
+            """Return canned density summary."""
             return {"total_business_count": 200}
 
     service = MarketService(

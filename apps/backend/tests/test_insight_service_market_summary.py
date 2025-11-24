@@ -1,3 +1,5 @@
+"""Unit tests for `InsightService.generate_market_summary`."""
+
 from uuid import uuid4
 
 import pytest
@@ -8,9 +10,17 @@ from services.insight_service import InsightService
 
 
 def test_generate_market_summary_merges_stats_and_ai():
+    """Market summary merges DB stats with AI output."""
+
     class FakeDemographicsRepository:
-        def get_for_regions(self, db_session, city, country):
+        """Fake demographics repository."""
+
+        def get_for_regions(self, _db_session, _city, _country):
+            """Return one demographics row."""
+
             class FakeRow:
+                """Row-like fixture for demographics."""
+
                 geo_id = "accra-1"
                 population_total = 1000
                 median_income = 200
@@ -18,22 +28,34 @@ def test_generate_market_summary_merges_stats_and_ai():
             return [FakeRow()]
 
     class FakeSpendingRepository:
-        def get_for_regions(self, db_session, city, country):
+        """Fake spending repository."""
+
+        def get_for_regions(self, _db_session, _city, _country):
+            """Return no spending rows."""
             return []
 
     class FakeLabourStatsRepository:
-        def get_for_regions(self, db_session, city, country):
+        """Fake labour stats repository."""
+
+        def get_for_regions(self, _db_session, _city, _country):
+            """Return no labour rows."""
             return []
 
     class FakeAiClient:
+        """Fake AI client."""
+
         def generate_market_summary(self, payload):
+            """Return canned AI summary."""
             assert payload["city"] == "Accra"
             return {"summary": "ai"}
 
     class DummyOpportunityRepository:
+        """Stub opportunity scores repository (unused in this test)."""
+
         def list_by_city_and_business_type(
-            self, db_session, city, country, business_type
+            self, _db_session, _city, _country, _business_type
         ):
+            """Not used in this test."""
             raise AssertionError("not used")
 
     service = InsightService(
@@ -60,26 +82,43 @@ def test_generate_market_summary_merges_stats_and_ai():
 
 
 def test_generate_market_summary_raises_404_when_no_data():
+    """No demographics/spending/labour data yields 404."""
+
     class EmptyDemographicsRepository:
-        def get_for_regions(self, db_session, city, country):
+        """Empty demographics repository."""
+
+        def get_for_regions(self, _db_session, _city, _country):
+            """Return empty list."""
             return []
 
     class EmptySpendingRepository:
-        def get_for_regions(self, db_session, city, country):
+        """Empty spending repository."""
+
+        def get_for_regions(self, _db_session, _city, _country):
+            """Return empty list."""
             return []
 
     class EmptyLabourStatsRepository:
-        def get_for_regions(self, db_session, city, country):
+        """Empty labour stats repository."""
+
+        def get_for_regions(self, _db_session, _city, _country):
+            """Return empty list."""
             return []
 
     class DummyOpportunityRepository:
+        """Stub opportunity scores repository (unused in this test)."""
+
         def list_by_city_and_business_type(
-            self, db_session, city, country, business_type
+            self, _db_session, _city, _country, _business_type
         ):
+            """Not used in this test."""
             raise AssertionError("not used")
 
     class DummyAiClient:
-        def generate_market_summary(self, payload):
+        """Stub AI client."""
+
+        def generate_market_summary(self, _payload):
+            """Not used in this test."""
             raise AssertionError("not used")
 
     service = InsightService(

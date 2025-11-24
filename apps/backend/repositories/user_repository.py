@@ -13,6 +13,7 @@ class UserRepository:
     """Data access for `users` table."""
 
     def get_by_id(self, db_session: Session, user_id: UUID) -> User | None:
+        """Get a user by id, returning None if it does not exist."""
         return db_session.get(User, user_id)
 
     def admin_list(
@@ -24,6 +25,16 @@ class UserRepository:
         limit: int = 100,
         offset: int = 0,
     ) -> list[User]:
+        """
+        Admin listing of users with optional filters and pagination.
+
+        Args:
+            email_contains: Optional substring match for email.
+            role: Optional role filter.
+            tenant_id: Optional tenant UUID filter.
+            limit: Max number of results.
+            offset: Pagination offset.
+        """
         query: Select = select(User)
         if tenant_id is not None:
             query = query.where(User.tenant_id == tenant_id)

@@ -77,6 +77,7 @@ class MarketService:
         )
 
         # tenant_id is accepted for future RLS/tenant scoping, unused for now.
+        _ = tenant_id
         return {
             "city": city,
             "country": country,

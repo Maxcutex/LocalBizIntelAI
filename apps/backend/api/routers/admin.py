@@ -188,7 +188,9 @@ def list_report_jobs(
     summary="Admin system health",
     status_code=http_status.HTTP_501_NOT_IMPLEMENTED,
 )
-def system_health(admin_service: AdminService = Depends(get_admin_service)) -> dict:
+def system_health(
+    _admin_service: AdminService = Depends(get_admin_service),
+) -> dict:
     """
     Return internal system health and monitoring data (admin-only).
 

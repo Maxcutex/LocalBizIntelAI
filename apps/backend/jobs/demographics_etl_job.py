@@ -29,6 +29,7 @@ class DemographicsSourceClient(Protocol):
         options: dict[str, Any],
         settings: Settings,
     ) -> list[dict[str, Any]]:
+        """Fetch raw demographics rows from a provider."""
         raise NotImplementedError
 
 
@@ -47,6 +48,7 @@ class LocalStubDemographicsSourceClient:
         options: dict[str, Any],
         settings: Settings,
     ) -> list[dict[str, Any]]:
+        """Return deterministic stub demographics for local/dev use."""
         _ = options
         _ = settings
         resolved_country = country or "NA"
@@ -82,6 +84,8 @@ class LocalStubDemographicsSourceClient:
 
 @dataclass
 class DemographicsEtlResult:
+    """Result summary for a demographics ETL run."""
+
     dataset_name: str
     status: str
     row_count: int
@@ -117,6 +121,12 @@ class DemographicsEtlJob:
         city: str | None,
         options: dict[str, Any] | None = None,
     ) -> DemographicsEtlResult:
+        """
+        Execute one demographics ETL run.
+
+        Fetches raw rows from the source client, upserts them, updates freshness,
+        and records an `ETLLog`.
+        """
         dataset_name = "demographics"
         now = datetime.now(timezone.utc)
         resolved_options = options or {}

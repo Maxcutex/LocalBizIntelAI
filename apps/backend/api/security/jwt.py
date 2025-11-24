@@ -11,6 +11,7 @@ from api.config import Settings
 def create_access_token(
     *, user_id: UUID, tenant_id: UUID, role: str, settings: Settings
 ) -> str:
+    """Create a signed JWT access token for a user/tenant/role."""
     now = datetime.now(timezone.utc)
     expires_at = now + timedelta(minutes=settings.jwt_access_token_ttl_min)
     payload = {
@@ -28,6 +29,7 @@ def create_access_token(
 
 
 def decode_access_token(*, token: str, settings: Settings) -> dict:
+    """Decode and validate a JWT access token, raising on invalid tokens."""
     return jwt.decode(
         token,
         settings.jwt_secret_key,
@@ -38,6 +40,7 @@ def decode_access_token(*, token: str, settings: Settings) -> dict:
 
 
 def try_verify_access_token(*, token: str, settings: Settings) -> dict | None:
+    """Return decoded token if valid, otherwise `None`."""
     try:
         return decode_access_token(token=token, settings=settings)
     except JWTError:

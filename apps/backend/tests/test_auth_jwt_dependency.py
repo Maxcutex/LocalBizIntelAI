@@ -1,3 +1,5 @@
+"""Tests for JWT bearer dependency and context extraction."""
+
 from uuid import uuid4
 
 from api.config import get_settings
@@ -6,6 +8,7 @@ from api.security.jwt import create_access_token
 
 
 def test_bearer_token_builds_context():
+    """Valid bearer token yields request context with ids/role."""
     settings = get_settings()
     user_id = uuid4()
     tenant_id = uuid4()
@@ -28,6 +31,7 @@ def test_bearer_token_builds_context():
 
 
 def test_bearer_token_invalid_raises_401():
+    """Invalid bearer token raises 401."""
     import pytest
     from fastapi import HTTPException
 

@@ -10,6 +10,8 @@ from .db import Base
 
 
 class DataFreshness(Base):
+    """Dataset freshness ORM model for monitoring ETL recency."""
+
     __tablename__ = "data_freshness"
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -24,6 +26,8 @@ class DataFreshness(Base):
 
 
 class ETLLog(Base):
+    """ETL log ORM model capturing run payloads and outcomes."""
+
     __tablename__ = "etl_logs"
 
     id: Mapped[uuid.UUID] = mapped_column(

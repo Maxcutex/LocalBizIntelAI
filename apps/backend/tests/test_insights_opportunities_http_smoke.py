@@ -1,3 +1,5 @@
+"""HTTP smoke tests for `/insights/opportunities` endpoint wiring."""
+
 from uuid import uuid4
 
 from api.dependencies import CurrentRequestContext, get_current_request_context, get_db
@@ -8,18 +10,24 @@ from services.insight_service import InsightService
 
 
 def override_db():
+    """Provide a dummy DB session for dependency overrides."""
+
     class DummySession:
-        pass
+        """Stub SQLAlchemy session."""
 
     yield DummySession()
 
 
 def test_opportunities_http_smoke_real_service_orders_and_includes_ai():
+    """Endpoint returns ranked opportunities and AI commentary."""
     app = create_app()
     expected_tenant_id = uuid4()
 
     class FakeOpportunityRow:
+        """Row-like fixture for opportunity scores."""
+
         def __init__(self, geo_id: str, composite_score: float):
+            """Populate fixture fields."""
             self.geo_id = geo_id
             self.country = "CA"
             self.city = "Toronto"
@@ -31,32 +39,51 @@ def test_opportunities_http_smoke_real_service_orders_and_includes_ai():
             self.calculated_at = None
 
     class FakeOpportunityRepository:
+        """Fake opportunity repository returning two rows."""
+
         def list_by_city_and_business_type(
-            self, db_session, city, country, business_type
+            self, _db_session, _city, _country, _business_type
         ):
+            """Return canned rows."""
             return [
                 FakeOpportunityRow("toronto-a", 0.3),
                 FakeOpportunityRow("toronto-b", 0.9),
             ]
 
     class FakeAiClient:
+        """Fake AI client returning canned commentary."""
+
         def generate_opportunity_commentary(self, ranked_regions):
+            """Return commentary payload."""
+            _ = ranked_regions
             return {"commentary": "ai", "region_rationales": []}
 
     def override_context():
+        """Provide fake request context with tenant id."""
         return CurrentRequestContext(user_id=uuid4(), tenant_id=expected_tenant_id)
 
     def override_insight_service():
+        """Provide a real `InsightService` wired with fakes."""
+
         class DummyDemographicsRepository:
-            def get_for_regions(self, db_session, city, country):
+            """Stub demographics repository (unused)."""
+
+            def get_for_regions(self, _db_session, _city, _country):
+                """Return empty list."""
                 return []
 
         class DummySpendingRepository:
-            def get_for_regions(self, db_session, city, country):
+            """Stub spending repository (unused)."""
+
+            def get_for_regions(self, _db_session, _city, _country):
+                """Return empty list."""
                 return []
 
         class DummyLabourStatsRepository:
-            def get_for_regions(self, db_session, city, country):
+            """Stub labour stats repository (unused)."""
+
+            def get_for_regions(self, _db_session, _city, _country):
+                """Return empty list."""
                 return []
 
         return InsightService(

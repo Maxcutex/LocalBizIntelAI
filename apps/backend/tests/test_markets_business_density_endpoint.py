@@ -1,20 +1,28 @@
+"""HTTP endpoint tests for market business density routes."""
+
 from api.dependencies import get_db
 from api.main import create_app
 from api.routers import markets as markets_router
 
 
 def override_db():
+    """Provide a dummy DB session for dependency overrides."""
+
     class DummySession:
-        pass
+        """Stub SQLAlchemy session."""
 
     yield DummySession()
 
 
 def test_get_business_density_success_with_filter():
+    """`GET /markets/{city}/business-density` returns density for filter."""
     app = create_app()
 
     class FakeMarketService:
-        def get_business_density(self, db_session, city, country, business_type):
+        """Fake market service returning canned densities."""
+
+        def get_business_density(self, _db_session, city, country, business_type):
+            """Return deterministic density list."""
             assert city == "Accra"
             assert country == "GH"
             assert business_type == "retail"
@@ -32,8 +40,13 @@ def test_get_business_density_success_with_filter():
             ]
 
     app.dependency_overrides[get_db] = override_db
+
+    def override_market_service():
+        """Provide the fake market service."""
+        return FakeMarketService()
+
     app.dependency_overrides[markets_router.get_market_service] = (
-        lambda: FakeMarketService()
+        override_market_service
     )
 
     from fastapi.testclient import TestClient
@@ -51,10 +64,14 @@ def test_get_business_density_success_with_filter():
 
 
 def test_get_business_density_not_found():
+    """Missing density yields 404."""
     app = create_app()
 
     class FakeMarketService:
-        def get_business_density(self, db_session, city, country, business_type):
+        """Fake market service raising 404."""
+
+        def get_business_density(self, _db_session, _city, _country, _business_type):
+            """Raise 404 for any lookup."""
             from fastapi import HTTPException, status
 
             raise HTTPException(
@@ -63,8 +80,13 @@ def test_get_business_density_not_found():
             )
 
     app.dependency_overrides[get_db] = override_db
+
+    def override_market_service():
+        """Provide the fake market service."""
+        return FakeMarketService()
+
     app.dependency_overrides[markets_router.get_market_service] = (
-        lambda: FakeMarketService()
+        override_market_service
     )
 
     from fastapi.testclient import TestClient

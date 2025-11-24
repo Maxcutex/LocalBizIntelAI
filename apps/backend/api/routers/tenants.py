@@ -23,7 +23,9 @@ def get_tenant_service() -> TenantService:
     summary="List tenants",
     status_code=status.HTTP_501_NOT_IMPLEMENTED,
 )
-def list_tenants(tenant_service: TenantService = Depends(get_tenant_service)) -> dict:
+def list_tenants(
+    _tenant_service: TenantService = Depends(get_tenant_service),
+) -> dict:
     """
     List tenants accessible to the current user.
 
@@ -38,7 +40,9 @@ def list_tenants(tenant_service: TenantService = Depends(get_tenant_service)) ->
     summary="Create tenant",
     status_code=status.HTTP_501_NOT_IMPLEMENTED,
 )
-def create_tenant(tenant_service: TenantService = Depends(get_tenant_service)) -> dict:
+def create_tenant(
+    _tenant_service: TenantService = Depends(get_tenant_service),
+) -> dict:
     """
     Create a new tenant/workspace.
 

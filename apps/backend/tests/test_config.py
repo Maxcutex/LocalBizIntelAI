@@ -1,7 +1,10 @@
+"""Unit tests for configuration settings."""
+
 from api.config import Settings
 
 
 def test_settings_builds_sqlalchemy_uri_from_components():
+    """SQLAlchemy URI is built correctly from PG_* components."""
     settings = Settings(
         pg_host="db.example.com",
         pg_port=6543,

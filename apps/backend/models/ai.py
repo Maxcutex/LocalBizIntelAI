@@ -11,6 +11,8 @@ from .db import Base
 
 
 class VectorInsight(Base):
+    """Vector insight ORM model storing embeddings for semantic search."""
+
     __tablename__ = "vector_insights"
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -32,6 +34,8 @@ class VectorInsight(Base):
 
 
 class AILog(Base):
+    """AI log ORM model capturing LLM inputs/outputs for auditing."""
+
     __tablename__ = "ai_logs"
 
     id: Mapped[uuid.UUID] = mapped_column(

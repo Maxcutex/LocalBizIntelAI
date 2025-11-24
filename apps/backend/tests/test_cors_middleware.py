@@ -1,3 +1,5 @@
+"""Integration tests for CORS middleware behavior."""
+
 import os
 
 from api.config import get_settings
@@ -5,6 +7,7 @@ from api.main import create_app
 
 
 def test_cors_allows_configured_origin():
+    """Configured origin is echoed in CORS preflight response."""
     os.environ["CORS_ALLOWED_ORIGINS"] = "https://example.com"
     get_settings.cache_clear()
     try:

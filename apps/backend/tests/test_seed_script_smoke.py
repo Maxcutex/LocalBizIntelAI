@@ -1,8 +1,11 @@
+"""Smoke tests for seed script record generation."""
+
 from datetime import datetime, timezone
 from uuid import uuid4
 
 
 def test_seed_build_records_is_pure_and_non_empty():
+    """`build_seed_records` returns all expected datasets with data."""
     from scripts.seed import build_seed_records
 
     tenant_id = uuid4()

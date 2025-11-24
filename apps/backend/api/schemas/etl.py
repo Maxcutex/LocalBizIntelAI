@@ -6,6 +6,8 @@ from pydantic import BaseModel, Field
 
 
 class EtlRunRequest(BaseModel):
+    """Request payload for triggering an ETL run."""
+
     dataset: str = Field(min_length=1)
     country: str | None = None
     city: str | None = None
@@ -13,5 +15,7 @@ class EtlRunRequest(BaseModel):
 
 
 class EtlRunResponse(BaseModel):
+    """Response payload for queued ETL runs."""
+
     status: Literal["QUEUED"]
     payload: dict[str, Any]

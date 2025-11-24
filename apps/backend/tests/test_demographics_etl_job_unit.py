@@ -1,3 +1,5 @@
+"""Unit tests for `DemographicsEtlJob` happy and failure paths."""
+
 from datetime import datetime, timezone
 
 import pytest
@@ -6,20 +8,30 @@ from jobs.demographics_etl_job import DemographicsEtlJob
 
 
 class DummySession:
+    """Minimal session fixture capturing add/flush calls."""
+
     def __init__(self):
+        """Initialize fixture state."""
         self.added = []
         self.flushed = False
 
     def add(self, obj):
+        """Record added objects."""
         self.added.append(obj)
 
     def flush(self):
+        """Mark flush as called."""
         self.flushed = True
 
 
 def test_demographics_etl_job_happy_path_updates_rows_and_freshness():
+    """Happy path upserts rows, updates freshness, and logs."""
+
     class FakeSourceClient:
-        def fetch_demographics(self, *, country, city, options, settings):
+        """Fake source returning deterministic demographics rows."""
+
+        def fetch_demographics(self, *, _country, _city, _options, _settings):
+            """Return canned demographics rows."""
             return [
                 {
                     "geo_id": "accra-1",
@@ -38,19 +50,27 @@ def test_demographics_etl_job_happy_path_updates_rows_and_freshness():
             ]
 
     class FakeDemographicsRepository:
+        """Fake demographics repository asserting on upsert."""
+
         def __init__(self):
+            """Initialize call-capture state."""
             self.called_with = None
 
         def upsert_many(self, db_session, rows, last_updated):
+            """Capture input and return affected row count."""
             assert isinstance(last_updated, datetime)
             self.called_with = (db_session, rows)
             return len(rows)
 
     class FakeDataFreshnessRepository:
+        """Fake data freshness repository asserting on upsert."""
+
         def __init__(self):
+            """Initialize call-capture state."""
             self.last_call = None
 
-        def upsert_status(self, db_session, dataset_name, last_run, row_count, status):
+        def upsert_status(self, _db_session, dataset_name, last_run, row_count, status):
+            """Capture status update call."""
             assert dataset_name == "demographics"
             assert status == "COMPLETED"
             assert row_count == 2
@@ -77,19 +97,34 @@ def test_demographics_etl_job_happy_path_updates_rows_and_freshness():
 
 
 def test_demographics_etl_job_failure_marks_freshness_failed():
+    """Failure path marks freshness FAILED and re-raises."""
+
     class FailingSourceClient:
-        def fetch_demographics(self, *, country, city, options, settings):
+        """Fake source that raises to simulate provider failure."""
+
+        def fetch_demographics(self, *, _country, _city, _options, _settings):
+            """Raise to simulate provider error."""
             raise RuntimeError("boom")
 
     class FakeDemographicsRepository:
-        def upsert_many(self, db_session, rows, last_updated):
+        """Fake demographics repository (should not be called)."""
+
+        def upsert_many(self, _db_session, _rows, _last_updated):
+            """Not used in this test."""
             raise AssertionError("should not be called")
 
     class FakeDataFreshnessRepository:
+        """Fake data freshness repository capturing failure status."""
+
         def __init__(self):
+            """Initialize call-capture state."""
             self.last_call = None
 
         def upsert_status(self, db_session, dataset_name, last_run, row_count, status):
+            """Capture failure marker call."""
+            _ = db_session
+            _ = dataset_name
+            _ = last_run
             self.last_call = (dataset_name, status, row_count)
             assert status == "FAILED"
 
