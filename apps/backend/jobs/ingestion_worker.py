@@ -6,6 +6,7 @@ This mirrors the eventual background worker runtime.
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from typing import Any, Protocol
 
@@ -13,6 +14,8 @@ from sqlalchemy.orm import Session
 
 from jobs.business_density_etl_job import BusinessDensityEtlJob
 from jobs.demographics_etl_job import DemographicsEtlJob
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -79,15 +82,36 @@ class IngestionWorker:
         normalized_dataset = self._normalize_dataset_name(message.dataset)
         handler = self._handlers_by_dataset.get(normalized_dataset)
         if not handler:
+            logger.error(
+                "Unsupported ingestion dataset",
+                extra={"dataset": message.dataset},
+            )
             raise ValueError(f"Unsupported ingestion dataset: {message.dataset}")
 
+        logger.info(
+            "Consuming ingestion message",
+            extra={
+                "dataset": normalized_dataset,
+                "country": message.country,
+                "city": message.city,
+            },
+        )
         result = handler.run(
             db_session=db_session,
             country=message.country,
             city=message.city,
             options=message.options,
         )
-        return result.__dict__
+        output = result.__dict__
+        logger.info(
+            "Ingestion message processed",
+            extra={
+                "dataset": normalized_dataset,
+                "status": output.get("status"),
+                "row_count": output.get("row_count"),
+            },
+        )
+        return output
 
     def _normalize_dataset_name(self, dataset_name: str) -> str:
         return dataset_name.lower().replace("-", "_").strip()

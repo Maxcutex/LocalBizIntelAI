@@ -40,6 +40,15 @@ dev = [
     "alembic",
 ]
 
+# Optional observability integrations.
+# These are loaded dynamically in `api.logging_config` when credentials are present.
+observability = [
+    "sentry-sdk>=2.0.0",
+    "google-cloud-logging>=3.10.0",
+    "watchtower>=3.0.1",
+    "ddtrace>=2.0.0",
+]
+
 [tool.uvicorn]
 factory = true
 reload = true

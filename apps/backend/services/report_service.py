@@ -1,5 +1,6 @@
 """Report management service."""
 
+import logging
 from typing import Any
 from uuid import UUID
 
@@ -38,8 +39,24 @@ class ReportService:
             tenant_id: Tenant owning the job.
             user_id: User who triggered job; included in queue message.
         """
+        logger = logging.getLogger(__name__)
+        logger.info(
+            "Creating feasibility report job",
+            extra={
+                "tenant_id": str(tenant_id),
+                "user_id": str(user_id),
+                "city": request.city,
+                "country": request.country,
+                "business_type": request.business_type,
+            },
+        )
+
         quota_ok = self._billing_service.check_report_quota(db_session, tenant_id)
         if not quota_ok:
+            logger.warning(
+                "Report quota exceeded",
+                extra={"tenant_id": str(tenant_id), "user_id": str(user_id)},
+            )
             raise HTTPException(
                 status_code=status.HTTP_402_PAYMENT_REQUIRED,
                 detail="Report quota exceeded",
@@ -65,6 +82,10 @@ class ReportService:
             },
         )
 
+        logger.info(
+            "Report job queued",
+            extra={"report_job_id": str(job.id), "tenant_id": str(tenant_id)},
+        )
         return {"job_id": str(job.id), "status": job.status}
 
     def list_reports(self, db_session: Session, tenant_id: UUID) -> list[Any]:

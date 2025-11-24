@@ -1,5 +1,6 @@
 """Insight orchestration service."""
 
+import logging
 from decimal import Decimal
 from typing import Any, cast
 from uuid import UUID
@@ -43,6 +44,17 @@ class InsightService:
         Pulls demographics, spending, and labour stats from repositories, builds a
         grounded payload, and asks the AI engine for the narrative summary.
         """
+        logger = logging.getLogger(__name__)
+        logger.info(
+            "Generating market summary",
+            extra={
+                "tenant_id": str(tenant_id),
+                "city": city,
+                "country": country,
+                "region_count": len(regions) if regions else None,
+            },
+        )
+
         demographics_rows = self._demographics_repository.get_for_regions(
             db_session, city, country
         )
@@ -54,6 +66,10 @@ class InsightService:
         )
 
         if not demographics_rows and not spending_rows and not labour_rows:
+            logger.warning(
+                "No market data found for market summary",
+                extra={"tenant_id": str(tenant_id), "city": city, "country": country},
+            )
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="No market data found for city",
@@ -102,7 +118,15 @@ class InsightService:
             "labour_stats": labour_payload,
         }
 
-        ai_summary = self._ai_engine_client.generate_market_summary(payload)
+        try:
+            ai_summary = self._ai_engine_client.generate_market_summary(payload)
+        except Exception:
+            logger.error(
+                "AI market summary generation failed",
+                exc_info=True,
+                extra={"tenant_id": str(tenant_id), "city": city},
+            )
+            raise
 
         return {
             "city": city,
@@ -131,10 +155,31 @@ class InsightService:
         Applies optional numeric constraints to DB-sourced scores, sorts by
         composite score, and augments results with AI commentary.
         """
+        logger = logging.getLogger(__name__)
+        logger.info(
+            "Finding opportunities",
+            extra={
+                "tenant_id": str(tenant_id),
+                "city": city,
+                "country": country,
+                "business_type": business_type,
+                "has_constraints": bool(constraints),
+            },
+        )
+
         rows = self._opportunity_scores_repository.list_by_city_and_business_type(
             db_session, city, country, business_type
         )
         if not rows:
+            logger.warning(
+                "No opportunities found for city",
+                extra={
+                    "tenant_id": str(tenant_id),
+                    "city": city,
+                    "country": country,
+                    "business_type": business_type,
+                },
+            )
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="No opportunities found for city",
@@ -175,6 +220,15 @@ class InsightService:
             )
 
         if not ranked_regions:
+            logger.warning(
+                "No opportunities matched constraints",
+                extra={
+                    "tenant_id": str(tenant_id),
+                    "city": city,
+                    "country": country,
+                    "business_type": business_type,
+                },
+            )
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="No opportunities match constraints",
@@ -190,6 +244,11 @@ class InsightService:
                 ranked_regions
             )
         except Exception:
+            logger.warning(
+                "AI opportunity commentary failed; using fallback",
+                exc_info=True,
+                extra={"tenant_id": str(tenant_id), "city": city},
+            )
             ai_commentary = {
                 "commentary": "AI commentary unavailable at the moment.",
                 "regions": ranked_regions,

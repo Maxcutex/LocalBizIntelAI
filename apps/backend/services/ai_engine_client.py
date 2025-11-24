@@ -8,6 +8,7 @@ This keeps the interface stable while allowing a real vertical slice to ship.
 """
 
 import json
+import logging
 from typing import Any
 
 from api.config import Settings
@@ -16,6 +17,9 @@ try:
     from openai import OpenAI as OPENAI_CLIENT_CLASS  # type: ignore[import-untyped]
 except ModuleNotFoundError:  # pragma: no cover
     OPENAI_CLIENT_CLASS = None  # type: ignore[assignment,misc]
+
+
+logger = logging.getLogger(__name__)
 
 
 class AiEngineClient:
@@ -77,19 +81,34 @@ class AiEngineClient:
         if self._openai_client is None:
             raise RuntimeError("OpenAI client not configured")
 
-        response = self._openai_client.chat.completions.create(
-            # type: ignore[call-overload]
-            model=self._model,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {
-                    "role": "user",
-                    "content": json.dumps(user_payload, default=str),
-                },
-            ],
-            temperature=0.3,
-            response_format={"type": "json_object"},
+        logger.info(
+            "Calling LLM for JSON response",
+            extra={
+                "model": self._model,
+                "payload_keys": list(user_payload.keys()),
+            },
         )
+        try:
+            response = self._openai_client.chat.completions.create(
+                # type: ignore[call-overload]
+                model=self._model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {
+                        "role": "user",
+                        "content": json.dumps(user_payload, default=str),
+                    },
+                ],
+                temperature=0.3,
+                response_format={"type": "json_object"},
+            )
+        except Exception:
+            logger.error(
+                "LLM call failed",
+                exc_info=True,
+                extra={"model": self._model},
+            )
+            raise
 
         content = response.choices[0].message.content or "{}"
         parsed = json.loads(content)
@@ -97,6 +116,10 @@ class AiEngineClient:
             return {}
 
         sanitized = self._strip_numeric_values(parsed)
+        logger.info(
+            "LLM call succeeded",
+            extra={"model": self._model},
+        )
         return sanitized
 
     @staticmethod
@@ -124,6 +147,10 @@ class AiEngineClient:
         """Generate a narrative market summary JSON from grounded market stats."""
         if self._openai_client is None:
             city = payload.get("city", "unknown city")
+            logger.info(
+                "OpenAI client not configured; using stub market summary",
+                extra={"city": city},
+            )
             return {"summary": f"Market summary for {city}."}
 
         system_prompt = (
@@ -135,6 +162,11 @@ class AiEngineClient:
             return self._call_llm_json(system_prompt, payload)
         except Exception:
             city = payload.get("city", "unknown city")
+            logger.warning(
+                "Falling back to stub market summary due to LLM error",
+                exc_info=True,
+                extra={"city": city},
+            )
             return {"summary": f"Market summary for {city} is unavailable currently."}
 
     def generate_opportunity_commentary(
@@ -144,6 +176,10 @@ class AiEngineClient:
         Generate short AI commentary and rationales for ranked opportunity regions.
         """
         if self._openai_client is None:
+            logger.info(
+                "OpenAI client not configured; using stub opportunity commentary",
+                extra={"region_count": len(ranked_regions)},
+            )
             return {
                 "commentary": "Opportunities generated.",
                 "region_rationales": [
@@ -172,6 +208,11 @@ class AiEngineClient:
                 result["commentary"] = "AI commentary generated."
             return result
         except Exception:
+            logger.warning(
+                "Falling back to stub opportunity commentary due to LLM error",
+                exc_info=True,
+                extra={"region_count": len(ranked_regions)},
+            )
             return {
                 "commentary": "AI commentary unavailable at the moment.",
                 "region_rationales": [
@@ -191,6 +232,10 @@ class AiEngineClient:
             headline = f"Personas for {city}"
             if business_type:
                 headline = f"Personas for {city} ({business_type})"
+            logger.info(
+                "OpenAI client not configured; using stub personas",
+                extra={"city": city, "business_type": business_type},
+            )
             return {"headline": headline, "personas": []}
 
         system_prompt = (
@@ -203,6 +248,11 @@ class AiEngineClient:
             return self._call_llm_json(system_prompt, input_payload)
         except Exception:
             city = input_payload.get("city", "unknown city")
+            logger.warning(
+                "Falling back to stub personas due to LLM error",
+                exc_info=True,
+                extra={"city": city},
+            )
             return {
                 "headline": f"Personas for {city} unavailable currently.",
                 "personas": [],

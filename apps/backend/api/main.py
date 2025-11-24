@@ -4,6 +4,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.config import get_settings
+from api.logging_config import configure_logging
+from api.request_logging_middleware import RequestLoggingMiddleware
 
 from .routers import (
     admin,
@@ -37,6 +39,8 @@ def create_app() -> FastAPI:
     )
 
     settings = get_settings()
+    configure_logging(settings)
+    app.add_middleware(RequestLoggingMiddleware, settings=settings)
     if settings.cors_allowed_origins:
         app.add_middleware(
             CORSMiddleware,

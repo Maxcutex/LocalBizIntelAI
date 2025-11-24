@@ -6,6 +6,7 @@ It can be invoked by a future worker that consumes `ingestion-jobs` messages.
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Protocol
@@ -51,6 +52,9 @@ class DataFreshnessRepositoryProtocol(Protocol):
         status: str,
     ) -> Any:
         raise NotImplementedError
+
+
+logger = logging.getLogger(__name__)
 
 
 class DemographicsSourceClient(Protocol):
@@ -175,6 +179,15 @@ class DemographicsEtlJob:
         resolved_options = options
 
         try:
+            logger.info(
+                "Starting ETL run",
+                extra={
+                    "dataset": dataset_name,
+                    "country": country,
+                    "city": city,
+                    "job": dataset_name,
+                },
+            )
             raw_rows = self._source_client.fetch_demographics(
                 country=country,
                 city=city,
@@ -208,6 +221,16 @@ class DemographicsEtlJob:
             )
 
             db_session.flush()
+            logger.info(
+                "ETL run completed",
+                extra={
+                    "dataset": dataset_name,
+                    "country": country,
+                    "city": city,
+                    "row_count": affected_rows,
+                    "status": "COMPLETED",
+                },
+            )
             return DemographicsEtlResult(
                 dataset_name=dataset_name,
                 status="COMPLETED",
@@ -216,6 +239,16 @@ class DemographicsEtlJob:
                 city=city,
             )
         except Exception:
+            logger.error(
+                "ETL run failed",
+                exc_info=True,
+                extra={
+                    "dataset": dataset_name,
+                    "country": country,
+                    "city": city,
+                    "status": "FAILED",
+                },
+            )
             self._data_freshness_repository.upsert_status(
                 db_session=db_session,
                 dataset_name=dataset_name,

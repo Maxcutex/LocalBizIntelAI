@@ -26,6 +26,62 @@ class Settings(BaseSettings):
     environment: Literal["local", "dev", "staging", "prod"] = "local"
     debug: bool = True
 
+    # Logging
+    log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = Field(
+        default="INFO", validation_alias="LOG_LEVEL"
+    )
+    log_json: bool = Field(default=True, validation_alias="LOG_JSON")
+    log_service_name: str = Field(
+        default="localbizintel-backend", validation_alias="LOG_SERVICE_NAME"
+    )
+    log_request_body: bool = Field(default=False, validation_alias="LOG_REQUEST_BODY")
+    log_response_body: bool = Field(default=False, validation_alias="LOG_RESPONSE_BODY")
+    log_body_max_bytes: int = Field(default=4096, validation_alias="LOG_BODY_MAX_BYTES")
+    log_redact_keys: list[str] = Field(
+        default_factory=lambda: [
+            "password",
+            "access_token",
+            "refresh_token",
+            "jwt",
+            "api_key",
+            "authorization",
+        ],
+        validation_alias="LOG_REDACT_KEYS",
+    )
+
+    # Observability providers (auto-enabled when credentials are present)
+    # Sentry
+    sentry_dsn: str | None = Field(default=None, validation_alias="SENTRY_DSN")
+    sentry_traces_sample_rate: float = Field(
+        default=0.0, validation_alias="SENTRY_TRACES_SAMPLE_RATE"
+    )
+
+    # Datadog: logs are shipped via agent; API key enables trace/log correlation.
+    datadog_api_key: str | None = Field(
+        default=None, validation_alias="DATADOG_API_KEY"
+    )
+    datadog_site: str = Field(default="datadoghq.com", validation_alias="DATADOG_SITE")
+    datadog_service_name: str | None = Field(
+        default=None, validation_alias="DATADOG_SERVICE_NAME"
+    )
+
+    # Google Cloud Logging direct handler (optional; stdout JSON also works with GCP)
+    gcp_logging_enabled: bool = Field(
+        default=False, validation_alias="GCP_LOGGING_ENABLED"
+    )
+
+    # AWS CloudWatch direct handler (optional; stdout JSON also works via agent).
+    aws_cloudwatch_enabled: bool = Field(
+        default=False, validation_alias="AWS_CLOUDWATCH_ENABLED"
+    )
+    aws_region: str | None = Field(default=None, validation_alias="AWS_REGION")
+    aws_cloudwatch_log_group: str | None = Field(
+        default=None, validation_alias="AWS_CLOUDWATCH_LOG_GROUP"
+    )
+    aws_cloudwatch_log_stream: str | None = Field(
+        default=None, validation_alias="AWS_CLOUDWATCH_LOG_STREAM"
+    )
+
     # JWT / auth settings
     jwt_secret_key: str = Field(default="change-me", validation_alias="JWT_SECRET_KEY")
     jwt_algorithm: str = Field(default="HS256", validation_alias="JWT_ALGORITHM")

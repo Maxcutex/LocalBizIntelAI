@@ -1,5 +1,6 @@
 """ETL orchestration service."""
 
+import logging
 from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID
@@ -50,6 +51,19 @@ class ETLOrchestrationService:
         self._pubsub_client.publish_ingestion_job(
             topic="ingestion-jobs",
             message=payload,
+        )
+
+        logging.getLogger(__name__).info(
+            "Queued ingestion job",
+            extra={
+                "job_name": "adhoc-etl-run",
+                "dataset": dataset,
+                "country": country,
+                "city": city,
+                "requested_at": payload["requested_at"],
+                "triggered_by_user_id": str(triggered_by_user_id),
+                "triggered_by_tenant_id": str(triggered_by_tenant_id),
+            },
         )
 
         # TODO: Optionally persist this request to an `admin_actions` table once

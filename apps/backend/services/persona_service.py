@@ -1,5 +1,6 @@
 """Persona generation service."""
 
+import logging
 from decimal import Decimal
 from typing import Any, cast
 from uuid import UUID
@@ -47,6 +48,18 @@ class PersonaService:
             geo_ids: Optional region `geo_id` filters. When None, uses all regions.
             business_type: Optional business type to tailor personas.
         """
+        logger = logging.getLogger(__name__)
+        logger.info(
+            "Generating personas",
+            extra={
+                "tenant_id": str(tenant_id),
+                "city": city,
+                "country": country,
+                "business_type": business_type,
+                "geo_id_count": len(geo_ids) if geo_ids else None,
+            },
+        )
+
         demographics_rows = self._demographics_repository.get_for_regions(
             db_session, city, country
         )
@@ -58,6 +71,10 @@ class PersonaService:
         )
 
         if not demographics_rows and not spending_rows and not labour_rows:
+            logger.warning(
+                "No market data found for personas",
+                extra={"tenant_id": str(tenant_id), "city": city, "country": country},
+            )
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="No market data found for city",
@@ -108,7 +125,15 @@ class PersonaService:
             "labour_stats": labour_payload,
         }
 
-        personas = self._ai_engine_client.generate_personas(input_payload)
+        try:
+            personas = self._ai_engine_client.generate_personas(input_payload)
+        except Exception:
+            logger.error(
+                "Persona generation failed",
+                exc_info=True,
+                extra={"tenant_id": str(tenant_id), "city": city},
+            )
+            raise
 
         return {
             "city": city,
