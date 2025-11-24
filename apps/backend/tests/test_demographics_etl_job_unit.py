@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 
 import pytest
 
+from api.config import get_settings
 from jobs.demographics_etl_job import DemographicsEtlJob
 
 
@@ -30,8 +31,12 @@ def test_demographics_etl_job_happy_path_updates_rows_and_freshness():
     class FakeSourceClient:
         """Fake source returning deterministic demographics rows."""
 
-        def fetch_demographics(self, *, _country, _city, _options, _settings):
+        def fetch_demographics(self, *, country, city, options, settings):
             """Return canned demographics rows."""
+            _ = country
+            _ = city
+            _ = options
+            _ = settings
             return [
                 {
                     "geo_id": "accra-1",
@@ -69,8 +74,9 @@ def test_demographics_etl_job_happy_path_updates_rows_and_freshness():
             """Initialize call-capture state."""
             self.last_call = None
 
-        def upsert_status(self, _db_session, dataset_name, last_run, row_count, status):
+        def upsert_status(self, db_session, dataset_name, last_run, row_count, status):
             """Capture status update call."""
+            _ = db_session
             assert dataset_name == "demographics"
             assert status == "COMPLETED"
             assert row_count == 2
@@ -85,9 +91,10 @@ def test_demographics_etl_job_happy_path_updates_rows_and_freshness():
         demographics_repository=demographics_repository,
         data_freshness_repository=data_freshness_repository,
         source_client=FakeSourceClient(),
+        settings=get_settings(),
     )
 
-    result = job.run(db_session=db_session, country="GH", city="Accra")
+    result = job.run(db_session=db_session, country="GH", city="Accra", options={})
 
     assert result.status == "COMPLETED"
     assert result.row_count == 2
@@ -102,8 +109,12 @@ def test_demographics_etl_job_failure_marks_freshness_failed():
     class FailingSourceClient:
         """Fake source that raises to simulate provider failure."""
 
-        def fetch_demographics(self, *, _country, _city, _options, _settings):
+        def fetch_demographics(self, *, country, city, options, settings):
             """Raise to simulate provider error."""
+            _ = country
+            _ = city
+            _ = options
+            _ = settings
             raise RuntimeError("boom")
 
     class FakeDemographicsRepository:
@@ -135,9 +146,10 @@ def test_demographics_etl_job_failure_marks_freshness_failed():
         demographics_repository=FakeDemographicsRepository(),
         data_freshness_repository=data_freshness_repository,
         source_client=FailingSourceClient(),
+        settings=get_settings(),
     )
 
     with pytest.raises(RuntimeError):
-        job.run(db_session=db_session, country="GH", city="Accra")
+        job.run(db_session=db_session, country="GH", city="Accra", options={})
 
     assert data_freshness_repository.last_call == ("demographics", "FAILED", 0)

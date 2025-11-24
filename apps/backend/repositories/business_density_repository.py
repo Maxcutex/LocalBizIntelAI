@@ -1,6 +1,7 @@
 """Business density repository implementation."""
 
-from typing import cast
+from datetime import datetime
+from typing import Any, cast
 
 from sqlalchemy import Select, distinct, func, select
 from sqlalchemy.orm import Session
@@ -58,3 +59,69 @@ class BusinessDensityRepository:
             "avg_density_score": row["avg_density_score"],
             "business_type_count": row["business_type_count"],
         }
+
+    def upsert_many(
+        self,
+        db_session: Session,
+        rows: list[dict[str, Any]],
+        last_updated: datetime,
+    ) -> int:
+        """
+        Insert or update business density rows keyed by
+        (geo_id, city, country, business_type).
+
+        Returns number of rows inserted/updated.
+        """
+
+        affected_rows = 0
+        last_updated_value = last_updated.isoformat()
+        for input_row in rows:
+            geo_id = str(input_row["geo_id"])
+            city = str(input_row["city"])
+            country = str(input_row["country"])
+            business_type = str(input_row["business_type"])
+
+            existing = (
+                db_session.execute(
+                    select(BusinessDensity).where(
+                        BusinessDensity.geo_id == geo_id,
+                        BusinessDensity.city == city,
+                        BusinessDensity.country == country,
+                        BusinessDensity.business_type == business_type,
+                    )
+                )
+                .scalars()
+                .first()
+            )
+
+            if existing:
+                for field_name, field_value in input_row.items():
+                    if field_name in {
+                        "geo_id",
+                        "city",
+                        "country",
+                        "business_type",
+                        "tenant_id",
+                    }:
+                        continue
+                    setattr(existing, field_name, field_value)
+                existing.last_updated = last_updated_value
+            else:
+                db_session.add(
+                    BusinessDensity(
+                        tenant_id=input_row.get("tenant_id"),
+                        geo_id=geo_id,
+                        city=city,
+                        country=country,
+                        business_type=business_type,
+                        count=input_row.get("count"),
+                        density_score=input_row.get("density_score"),
+                        coordinates=input_row.get("coordinates"),
+                        last_updated=last_updated_value,
+                    )
+                )
+
+            affected_rows += 1
+
+        db_session.flush()
+        return affected_rows

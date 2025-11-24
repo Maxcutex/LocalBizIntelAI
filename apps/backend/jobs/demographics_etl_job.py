@@ -10,12 +10,47 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Protocol
 
-from sqlalchemy.orm import Session
-
 from api.config import Settings, get_settings
 from models.system import ETLLog
 from repositories.data_freshness_repository import DataFreshnessRepository
 from repositories.demographics_repository import DemographicsRepository
+
+
+class EtlDbSession(Protocol):
+    """Minimal DB session interface needed by ETL jobs."""
+
+    def add(self, obj: Any) -> None:
+        raise NotImplementedError
+
+    def flush(self) -> None:
+        raise NotImplementedError
+
+
+class DemographicsRepositoryProtocol(Protocol):
+    """Abstraction for demographics persistence."""
+
+    def upsert_many(
+        self,
+        db_session: Any,
+        rows: list[dict[str, Any]],
+        last_updated: datetime,
+    ) -> int:
+        raise NotImplementedError
+
+
+class DataFreshnessRepositoryProtocol(Protocol):
+    """Abstraction for data freshness persistence."""
+
+    def upsert_status(
+        self,
+        *,
+        db_session: Any,
+        dataset_name: str,
+        last_run: datetime,
+        row_count: int,
+        status: str,
+    ) -> Any:
+        raise NotImplementedError
 
 
 class DemographicsSourceClient(Protocol):
@@ -99,27 +134,35 @@ class DemographicsEtlJob:
     def __init__(
         self,
         *,
-        demographics_repository: DemographicsRepository | None = None,
-        data_freshness_repository: DataFreshnessRepository | None = None,
-        source_client: DemographicsSourceClient | None = None,
-        settings: Settings | None = None,
+        demographics_repository: DemographicsRepositoryProtocol,
+        data_freshness_repository: DataFreshnessRepositoryProtocol,
+        source_client: DemographicsSourceClient,
+        settings: Settings,
     ) -> None:
-        self._demographics_repository = (
-            demographics_repository or DemographicsRepository()
+        self._demographics_repository = demographics_repository
+        self._data_freshness_repository = data_freshness_repository
+        self._source_client = source_client
+        self._settings = settings
+
+    @classmethod
+    def create_default(cls) -> "DemographicsEtlJob":
+        # TODO(architecture): Temporary local wiring. Move to a central
+        # `dependencies`/bootstrap module once the ingestion worker runtime exists.
+        settings = get_settings()
+        return cls(
+            demographics_repository=DemographicsRepository(),
+            data_freshness_repository=DataFreshnessRepository(),
+            source_client=LocalStubDemographicsSourceClient(),
+            settings=settings,
         )
-        self._data_freshness_repository = (
-            data_freshness_repository or DataFreshnessRepository()
-        )
-        self._source_client = source_client or LocalStubDemographicsSourceClient()
-        self._settings = settings or get_settings()
 
     def run(
         self,
         *,
-        db_session: Session,
+        db_session: EtlDbSession,
         country: str | None,
         city: str | None,
-        options: dict[str, Any] | None = None,
+        options: dict[str, Any],
     ) -> DemographicsEtlResult:
         """
         Execute one demographics ETL run.
@@ -129,7 +172,7 @@ class DemographicsEtlJob:
         """
         dataset_name = "demographics"
         now = datetime.now(timezone.utc)
-        resolved_options = options or {}
+        resolved_options = options
 
         try:
             raw_rows = self._source_client.fetch_demographics(

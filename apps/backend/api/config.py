@@ -53,6 +53,39 @@ class Settings(BaseSettings):
     pg_user: str = Field(default="localbizintel", validation_alias="PG_USER")
     pg_password: str = Field(default="localbizintel", validation_alias="PG_PASSWORD")
 
+    # OpenStreetMap / Overpass settings for business density ingestion
+    osm_overpass_endpoint: str = Field(
+        default="https://overpass-api.de/api/interpreter",
+        validation_alias="OSM_OVERPASS_ENDPOINT",
+    )
+    osm_overpass_timeout_s: float = Field(
+        default=45.0, validation_alias="OSM_OVERPASS_TIMEOUT_S"
+    )
+    osm_overpass_query_timeout_s: int = Field(
+        default=30, validation_alias="OSM_OVERPASS_QUERY_TIMEOUT_S"
+    )
+    osm_overpass_user_agent: str = Field(
+        default="LocalBizIntelAI/0.1",
+        validation_alias="OSM_OVERPASS_USER_AGENT",
+    )
+    osm_max_coordinate_samples: int = Field(
+        default=1000, validation_alias="OSM_MAX_COORDINATE_SAMPLES"
+    )
+    osm_default_country: str = Field(
+        default="NA", validation_alias="OSM_DEFAULT_COUNTRY"
+    )
+    osm_city_geo_id_suffix: str = Field(
+        default="citywide", validation_alias="OSM_CITY_GEO_ID_SUFFIX"
+    )
+    osm_business_type_specs: dict[str, dict[str, str]] = Field(
+        default_factory=lambda: {
+            "cafes": {"tag_key": "amenity", "tag_value": "cafe"},
+            "restaurants": {"tag_key": "amenity", "tag_value": "restaurant"},
+            "gyms": {"tag_key": "leisure", "tag_value": "fitness_centre"},
+        },
+        validation_alias="OSM_BUSINESS_TYPE_SPECS",
+    )
+
     @property
     def cors_allowed_origins(self) -> list[str]:
         """Parse `CORS_ALLOWED_ORIGINS` into a list of allowed origins."""
