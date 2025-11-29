@@ -26,7 +26,7 @@ def test_generate_opportunities_success():
 
         def find_opportunities(
             self,
-            _db_session,
+            db_session,
             city: str,
             business_type: str | None,
             constraints: dict | None,
@@ -34,6 +34,7 @@ def test_generate_opportunities_success():
             tenant_id: UUID,
         ):
             """Return canned opportunities response."""
+            _ = db_session
             assert city == "Accra"
             assert business_type == "retail"
             assert constraints == {"min_composite_score": 0.5}

@@ -26,7 +26,7 @@ def test_generate_personas_success():
 
         def generate_personas(
             self,
-            _db_session,
+            db_session,
             city: str,
             country: str | None,
             geo_ids: list[str] | None,
@@ -34,6 +34,7 @@ def test_generate_personas_success():
             tenant_id: UUID,
         ):
             """Return deterministic personas payload."""
+            _ = db_session
             assert city == "Accra"
             assert country == "GH"
             assert geo_ids == ["accra-1"]

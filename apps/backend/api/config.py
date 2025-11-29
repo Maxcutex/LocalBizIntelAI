@@ -5,7 +5,10 @@ Central place for environment-driven configuration using Pydantic.
 """
 
 import json
+import logging
+import os
 from functools import lru_cache
+from pathlib import Path
 from typing import Literal
 
 from pydantic import Field
@@ -16,7 +19,7 @@ class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=Path(__file__).resolve().parents[1] / ".env",
         env_file_encoding="utf-8",
         populate_by_name=True,
     )
@@ -70,6 +73,19 @@ class Settings(BaseSettings):
         default=False, validation_alias="GCP_LOGGING_ENABLED"
     )
 
+    # Pub/Sub (optional; used by ETL/report orchestration)
+    pubsub_enabled: bool = Field(default=False, validation_alias="PUBSUB_ENABLED")
+    gcp_project_id: str | None = Field(default=None, validation_alias="GCP_PROJECT_ID")
+    pubsub_ingestion_topic: str = Field(
+        default="ingestion-jobs", validation_alias="PUBSUB_INGESTION_TOPIC"
+    )
+    pubsub_embedding_topic: str = Field(
+        default="embedding-jobs", validation_alias="PUBSUB_EMBEDDING_TOPIC"
+    )
+    pubsub_reports_topic: str = Field(
+        default="report-jobs", validation_alias="PUBSUB_REPORTS_TOPIC"
+    )
+
     # AWS CloudWatch direct handler (optional; stdout JSON also works via agent).
     aws_cloudwatch_enabled: bool = Field(
         default=False, validation_alias="AWS_CLOUDWATCH_ENABLED"
@@ -101,6 +117,12 @@ class Settings(BaseSettings):
     openai_api_key: str | None = Field(default=None, validation_alias="OPENAI_API_KEY")
     openai_model: str = Field(default="gpt-4o-mini", validation_alias="OPENAI_MODEL")
     openai_timeout_s: float = Field(default=25.0, validation_alias="OPENAI_TIMEOUT_S")
+    openai_embedding_model: str = Field(
+        default="text-embedding-3-small", validation_alias="OPENAI_EMBEDDING_MODEL"
+    )
+    openai_embedding_dimensions: int = Field(
+        default=768, validation_alias="OPENAI_EMBEDDING_DIMENSIONS"
+    )
 
     # Postgres configuration (explicit components, not a single URL)
     pg_host: str = Field(default="localhost", validation_alias="PG_HOST")
@@ -186,5 +208,31 @@ def get_settings() -> Settings:
     Using a cache here ensures we only read and parse environment
     variables once per process.
     """
+    try:
 
-    return Settings()
+        def _instantiate_settings(*, env_file: Path | None) -> Settings:
+            old_env_file = Settings.model_config.get("env_file")
+            Settings.model_config["env_file"] = env_file
+            try:
+                return Settings()
+            finally:
+                Settings.model_config["env_file"] = old_env_file
+
+        runtime_environment = (
+            os.environ.get("ENVIRONMENT") or os.environ.get("environment") or ""
+        ).strip()
+        if runtime_environment in {"prod", "staging"}:
+            # In staging/prod, configuration is provided by real environment variables.
+            # Avoid reading `.env` even if it exists in the container image.
+            return _instantiate_settings(env_file=None)
+
+        return Settings()
+    except PermissionError as exc:
+        logging.getLogger(__name__).warning(
+            "Permission error reading .env; falling back to environment variables",
+            extra={
+                "env_file": str(Settings.model_config.get("env_file")),
+                "error": str(exc),
+            },
+        )
+        return _instantiate_settings(env_file=None)

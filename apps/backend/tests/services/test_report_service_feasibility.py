@@ -34,9 +34,19 @@ def test_create_feasibility_report_creates_job_and_publishes():
         """Fake report jobs repository returning a pending job."""
 
         def create_pending_job(
-            self, _db_session, _tenant_id, _city, _country, _business_type
+            self,
+            _db_session,
+            *,
+            tenant_id,
+            city,
+            country,
+            business_type,
         ):
             """Return a canned pending job."""
+            _ = tenant_id
+            _ = city
+            _ = country
+            _ = business_type
             return FakeJob("job-1")
 
     class FakePubSubClient:
@@ -81,9 +91,19 @@ def test_create_feasibility_report_raises_when_quota_exceeded():
         """Stub report jobs repository (unused)."""
 
         def create_pending_job(
-            self, _db_session, _tenant_id, _city, _country, _business_type
+            self,
+            _db_session,
+            *,
+            tenant_id,
+            city,
+            country,
+            business_type,
         ):
             """Not used in this test."""
+            _ = tenant_id
+            _ = city
+            _ = country
+            _ = business_type
             raise AssertionError("should not be called")
 
     class DummyPubSubClient:

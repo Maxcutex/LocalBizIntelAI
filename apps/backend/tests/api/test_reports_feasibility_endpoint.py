@@ -27,12 +27,13 @@ def test_create_feasibility_report_success():
 
         def create_feasibility_report(
             self,
-            _db_session,
+            db_session,
             request,
             tenant_id: UUID,
             user_id: UUID,
         ):
             """Return deterministic job response."""
+            _ = db_session
             assert request.city == "Accra"
             assert request.country == "GH"
             assert request.business_type == "retail"

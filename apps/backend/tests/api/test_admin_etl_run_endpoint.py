@@ -27,7 +27,7 @@ def test_admin_trigger_etl_success_and_payload_passed():
 
         def trigger_adhoc_etl(
             self,
-            _db_session,
+            db_session,
             dataset,
             country,
             city,
@@ -36,6 +36,7 @@ def test_admin_trigger_etl_success_and_payload_passed():
             triggered_by_tenant_id,
         ):
             """Return a canned queued response."""
+            _ = db_session
             assert dataset == "demographics"
             assert country == "GH"
             assert city == "Accra"

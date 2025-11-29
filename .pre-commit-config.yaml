@@ -7,35 +7,35 @@ repos:
     hooks:
       - id: isort
         name: isort (apps/backend)
-        entry: bash -lc "cd apps/backend && uv run isort . --skip .venv --skip venv"
+        entry: bash -lc "cd apps/backend && if [ -x .venv/bin/isort ]; then .venv/bin/isort . --skip .venv --skip venv; else uv run isort . --skip .venv --skip venv; fi"
         language: system
         types: [python]
         pass_filenames: false
 
       - id: black
         name: black (apps/backend)
-        entry: bash -lc "cd apps/backend && uv run black . --exclude '/\\.venv/'"
+        entry: bash -lc "cd apps/backend && if [ -x .venv/bin/black ]; then .venv/bin/black . --exclude '/\\.venv/'; else uv run black . --exclude '/\\.venv/'; fi"
         language: system
         types: [python]
         pass_filenames: false
 
       - id: flake8
         name: flake8 (apps/backend)
-        entry: bash -lc "cd apps/backend && uv run flake8 --max-line-length=88 --extend-ignore=E203 --exclude .venv,venv ."
+        entry: bash -lc "cd apps/backend && if [ -x .venv/bin/flake8 ]; then .venv/bin/flake8 --max-line-length=88 --extend-ignore=E203 --exclude .venv,venv .; else uv run flake8 --max-line-length=88 --extend-ignore=E203 --exclude .venv,venv .; fi"
         language: system
         types: [python]
         pass_filenames: false
 
       - id: mypy
         name: mypy (apps/backend)
-        entry: bash -lc "cd apps/backend && uv run mypy . --exclude '(\\.venv|venv)' --hide-error-context"
+        entry: bash -lc "cd apps/backend && if [ -x .venv/bin/python ]; then .venv/bin/python -m mypy . --exclude '(\\.venv|venv)' --hide-error-context; else uv run mypy . --exclude '(\\.venv|venv)' --hide-error-context; fi"
         language: system
         types: [python]
         pass_filenames: false
 
       - id: bandit
         name: bandit (apps/backend)
-        entry: bash -lc "cd apps/backend && uv run bandit -r api models services tests --exclude .venv,venv --format txt --skip B101,B106,B601,B603,B607,B104,B404"
+        entry: bash -lc "cd apps/backend && if [ -x .venv/bin/bandit ]; then .venv/bin/bandit -r api models services tests --exclude .venv,venv --format txt --skip B101,B106,B601,B603,B607,B104,B404; else uv run bandit -r api models services tests --exclude .venv,venv --format txt --skip B101,B106,B601,B603,B607,B104,B404; fi"
         language: system
         types: [python]
         pass_filenames: false

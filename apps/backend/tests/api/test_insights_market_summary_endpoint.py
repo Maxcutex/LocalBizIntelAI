@@ -26,13 +26,14 @@ def test_generate_market_summary_success():
 
         def generate_market_summary(
             self,
-            _db_session,
+            db_session,
             city: str,
             country: str | None,
             tenant_id: UUID,
             regions: list[str] | None = None,
         ):
             """Return canned market summary."""
+            _ = db_session
             assert city == "Accra"
             assert country == "GH"
             assert tenant_id == expected_tenant_id
