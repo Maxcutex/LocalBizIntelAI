@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 from typing import Any, Protocol
 
 import httpx
+from sqlalchemy.orm import Session
 
 from api.config import Settings, get_settings
 from models.system import ETLLog
@@ -19,22 +20,12 @@ from repositories.business_density_repository import BusinessDensityRepository
 from repositories.data_freshness_repository import DataFreshnessRepository
 
 
-class EtlDbSession(Protocol):
-    """Minimal DB session interface needed by ETL jobs."""
-
-    def add(self, obj: Any) -> None:
-        raise NotImplementedError
-
-    def flush(self) -> None:
-        raise NotImplementedError
-
-
 class BusinessDensityRepositoryProtocol(Protocol):
     """Abstraction for business density persistence."""
 
     def upsert_many(
         self,
-        db_session: Any,
+        db_session: Session,
         rows: list[dict[str, Any]],
         last_updated: datetime,
     ) -> int:
@@ -47,7 +38,7 @@ class DataFreshnessRepositoryProtocol(Protocol):
     def upsert_status(
         self,
         *,
-        db_session: Any,
+        db_session: Session,
         dataset_name: str,
         last_run: datetime,
         row_count: int,
@@ -274,7 +265,7 @@ class BusinessDensityEtlJob:
     def run(
         self,
         *,
-        db_session: EtlDbSession,
+        db_session: Session,
         country: str | None,
         city: str | None,
         options: dict[str, Any],

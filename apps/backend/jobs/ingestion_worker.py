@@ -14,6 +14,8 @@ from sqlalchemy.orm import Session
 
 from jobs.business_density_etl_job import BusinessDensityEtlJob
 from jobs.demographics_etl_job import DemographicsEtlJob
+from jobs.labour_stats_etl_job import LabourStatsEtlJob
+from jobs.spending_etl_job import SpendingEtlJob
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +24,7 @@ logger = logging.getLogger(__name__)
 class IngestionMessage:
     """Canonical ingestion message structure."""
 
+    job_name: str | None
     dataset: str
     country: str | None
     city: str | None
@@ -29,8 +32,19 @@ class IngestionMessage:
 
     @classmethod
     def from_payload(cls, payload: dict[str, Any]) -> "IngestionMessage":
-        dataset = str(payload.get("dataset") or "")
+        job_name = payload.get("job_name")
+        resolved_job_name = str(job_name) if isinstance(job_name, str) else None
+
+        dataset_value = payload.get("dataset")
+        if isinstance(dataset_value, str) and dataset_value.strip():
+            dataset = dataset_value
+        elif resolved_job_name:
+            # Support the spec's envelope where `job_name` may drive the handler.
+            dataset = resolved_job_name
+        else:
+            dataset = ""
         return cls(
+            job_name=resolved_job_name,
             dataset=dataset,
             country=payload.get("country"),
             city=payload.get("city"),
@@ -67,11 +81,19 @@ class IngestionWorker:
         # `dependencies`/bootstrap module once the ingestion worker runtime exists.
         business_density_job = BusinessDensityEtlJob.create_default()
         demographics_job = DemographicsEtlJob.create_default()
+        labour_stats_job = LabourStatsEtlJob.create_default()
+        spending_job = SpendingEtlJob.create_default()
         return cls(
             handlers_by_dataset={
                 "business_density": business_density_job,
                 "business-density-refresh": business_density_job,
                 "demographics": demographics_job,
+                "census-demographics-refresh": demographics_job,
+                "labour": labour_stats_job,
+                "labour-stats-refresh": labour_stats_job,
+                "labour_stats": labour_stats_job,
+                "spending": spending_job,
+                "spending-stats-refresh": spending_job,
             }
         )
 

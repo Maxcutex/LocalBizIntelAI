@@ -117,3 +117,29 @@ def get_business_density(
         "business_type": business_type,
         "business_density": density,
     }
+
+
+@router.get(
+    "/{city}/spending",
+    summary="Get spending stats",
+)
+def get_spending(
+    city: str,
+    country: str | None = Query(default=None),
+    category: str | None = Query(default=None),
+    db: Session = Depends(get_db),
+    market_service: MarketService = Depends(get_market_service),
+) -> dict:
+    """
+    Return spending information for a city, optionally filtered by category.
+
+    Example:
+        `GET /markets/Toronto/spending?country=CA&category=groceries`
+    """
+    spending = market_service.get_spending_by_region(db, city, country, category)
+    return {
+        "city": city,
+        "country": country,
+        "category": category,
+        "spending": spending,
+    }

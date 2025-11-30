@@ -155,3 +155,36 @@ class MarketService:
             }
             for row in density_rows
         ]
+
+    def get_spending_by_region(
+        self, db_session: Session, city: str, country: str | None, category: str | None
+    ) -> list[dict]:
+        """
+        Return spending rows for a city, optionally filtered by category.
+
+        Raises 404 if no spending rows exist for the query.
+        """
+        spending_rows = self._spending_repository.get_for_regions(
+            db_session, city, country
+        )
+        if category:
+            spending_rows = [row for row in spending_rows if row.category == category]
+
+        if not spending_rows:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Spending not found for city",
+            )
+
+        return [
+            {
+                "geo_id": row.geo_id,
+                "country": row.country,
+                "city": row.city,
+                "category": row.category,
+                "avg_monthly_spend": self._numeric_to_float(row.avg_monthly_spend),
+                "spend_index": self._numeric_to_float(row.spend_index),
+                "last_updated": row.last_updated,
+            }
+            for row in spending_rows
+        ]

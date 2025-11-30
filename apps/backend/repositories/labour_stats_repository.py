@@ -1,5 +1,6 @@
 """Labour stats repository implementation."""
 
+from datetime import datetime
 from typing import cast
 
 from sqlalchemy import Select, func, select
@@ -44,3 +45,62 @@ class LabourStatsRepository:
         query = query.order_by(LabourStats.geo_id)
         result = db_session.execute(query).scalars().all()
         return cast(list[LabourStats], list(result))
+
+    def upsert_many(
+        self,
+        db_session: Session,
+        rows: list[dict[str, object]],
+        last_updated: datetime,
+    ) -> int:
+        """
+        Insert or update labour stats rows keyed by (geo_id, city, country).
+
+        Returns number of rows inserted/updated.
+        """
+
+        affected_rows = 0
+        last_updated_value = last_updated.isoformat()
+        for input_row in rows:
+            geo_id = str(input_row["geo_id"])
+            city = str(input_row["city"])
+            country = str(input_row["country"])
+
+            existing = (
+                db_session.execute(
+                    select(LabourStats).where(
+                        LabourStats.geo_id == geo_id,
+                        LabourStats.city == city,
+                        LabourStats.country == country,
+                    )
+                )
+                .scalars()
+                .first()
+            )
+
+            if existing:
+                for field_name, field_value in input_row.items():
+                    if field_name in {"geo_id", "city", "country", "tenant_id"}:
+                        continue
+                    setattr(existing, field_name, field_value)
+                existing.last_updated = last_updated_value
+            else:
+                db_session.add(
+                    LabourStats(
+                        tenant_id=input_row.get("tenant_id"),
+                        geo_id=geo_id,
+                        city=city,
+                        country=country,
+                        unemployment_rate=input_row.get("unemployment_rate"),
+                        job_openings=input_row.get("job_openings"),
+                        median_salary=input_row.get("median_salary"),
+                        labour_force_participation=input_row.get(
+                            "labour_force_participation"
+                        ),
+                        last_updated=last_updated_value,
+                    )
+                )
+
+            affected_rows += 1
+
+        db_session.flush()
+        return affected_rows

@@ -19,6 +19,7 @@ from .routers import (
     personas,
     reports,
     tenants,
+    workers,
 )
 
 
@@ -62,6 +63,7 @@ def create_app() -> FastAPI:
     app.include_router(billing.router, prefix="/billing", tags=["billing"])
     app.include_router(admin.router, prefix="/admin", tags=["admin"])
     app.include_router(etl.router, prefix="/admin/etl", tags=["admin", "etl"])
+    app.include_router(workers.router, prefix="/workers", tags=["workers"])
 
     return app
 

@@ -38,26 +38,53 @@ class ETLOrchestrationService:
             triggered_by_tenant_id: Tenant of the admin user.
         """
         now = datetime.now(timezone.utc)
-        payload: dict[str, Any] = {
-            "dataset": dataset,
-            "country": country,
-            "city": city,
-            "options": options or {},
-            "requested_at": now.isoformat(),
-            "triggered_by_user_id": str(triggered_by_user_id),
-            "triggered_by_tenant_id": str(triggered_by_tenant_id),
-        }
+        resolved_options = options or {}
+        normalized_dataset = str(dataset).strip()
 
-        self._pubsub_client.publish_ingestion_job(
-            topic="ingestion-jobs",
-            message=payload,
-        )
+        if normalized_dataset in {"rebuild-embeddings", "vector_insights"}:
+            job_name = "rebuild-embeddings"
+            regions = resolved_options.get("regions")
+            payload: dict[str, Any] = {
+                "job_name": job_name,
+                "country": country,
+                "city": city,
+                "regions": regions,
+                "options": resolved_options,
+                "requested_at": now.isoformat(),
+                "triggered_by_user_id": str(triggered_by_user_id),
+                "triggered_by_tenant_id": str(triggered_by_tenant_id),
+            }
+            self._pubsub_client.publish_embedding_job(
+                topic="embedding-jobs",
+                message=payload,
+            )
+        else:
+            job_name = "adhoc-etl-run"
+            payload = {
+                "job_name": job_name,
+                "dataset": normalized_dataset,
+                "country": country,
+                "city": city,
+                "force_full_refresh": bool(
+                    resolved_options.get("force_full_refresh")
+                    or resolved_options.get("full_refresh")
+                    or False
+                ),
+                "options": resolved_options,
+                "requested_at": now.isoformat(),
+                "triggered_by_user_id": str(triggered_by_user_id),
+                "triggered_by_tenant_id": str(triggered_by_tenant_id),
+            }
+            self._pubsub_client.publish_ingestion_job(
+                topic="ingestion-jobs",
+                message=payload,
+            )
 
         logging.getLogger(__name__).info(
-            "Queued ingestion job",
+            "Queued background job",
             extra={
-                "job_name": "adhoc-etl-run",
-                "dataset": dataset,
+                "job_name": job_name,
+                "dataset": normalized_dataset,
                 "country": country,
                 "city": city,
                 "requested_at": payload["requested_at"],

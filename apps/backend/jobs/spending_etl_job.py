@@ -1,7 +1,7 @@
-"""Demographics ETL job.
+"""Spending ETL job.
 
-This is a concrete ETL pipeline for one dataset ("demographics").
-It can be invoked by a future worker that consumes `ingestion-jobs` messages.
+Concrete ETL pipeline for the "spending" dataset.
+It can be invoked by the ingestion worker consuming `ingestion-jobs` messages.
 """
 
 from __future__ import annotations
@@ -16,11 +16,13 @@ from sqlalchemy.orm import Session
 from api.config import Settings, get_settings
 from models.system import ETLLog
 from repositories.data_freshness_repository import DataFreshnessRepository
-from repositories.demographics_repository import DemographicsRepository
+from repositories.spending_repository import SpendingRepository
+
+logger = logging.getLogger(__name__)
 
 
-class DemographicsRepositoryProtocol(Protocol):
-    """Abstraction for demographics persistence."""
+class SpendingRepositoryProtocol(Protocol):
+    """Abstraction for spending persistence."""
 
     def upsert_many(
         self,
@@ -46,13 +48,10 @@ class DataFreshnessRepositoryProtocol(Protocol):
         raise NotImplementedError
 
 
-logger = logging.getLogger(__name__)
+class SpendingSourceClient(Protocol):
+    """Interface for fetching raw spending rows from an external provider."""
 
-
-class DemographicsSourceClient(Protocol):
-    """Interface for fetching raw demographics rows from an external provider."""
-
-    def fetch_demographics(
+    def fetch_spending(
         self,
         *,
         country: str | None,
@@ -60,18 +59,17 @@ class DemographicsSourceClient(Protocol):
         options: dict[str, Any],
         settings: Settings,
     ) -> list[dict[str, Any]]:
-        """Fetch raw demographics rows from a provider."""
         raise NotImplementedError
 
 
-class LocalStubDemographicsSourceClient:
+class LocalStubSpendingSourceClient:
     """
     Deterministic local/dev source.
 
-    In production, swap this for a real government data provider client.
+    In production, swap this for a real provider integration (e.g., SHS/CEX/ONS).
     """
 
-    def fetch_demographics(
+    def fetch_spending(
         self,
         *,
         country: str | None,
@@ -79,43 +77,52 @@ class LocalStubDemographicsSourceClient:
         options: dict[str, Any],
         settings: Settings,
     ) -> list[dict[str, Any]]:
-        """Return deterministic stub demographics for local/dev use."""
-        _ = options
         _ = settings
         resolved_country = country or "NA"
         resolved_city = city or "Unknown"
+        slug = resolved_city.lower().replace(" ", "-")
 
-        base_population = 150_000
-        base_income = 50_000
-        geo_ids = [
-            f"{resolved_city.lower().replace(' ', '-')}-central",
-            f"{resolved_city.lower().replace(' ', '-')}-north",
-            f"{resolved_city.lower().replace(' ', '-')}-south",
-        ]
+        categories = options.get("categories")
+        resolved_categories: list[str]
+        if isinstance(categories, list) and all(isinstance(x, str) for x in categories):
+            resolved_categories = list(categories)
+        else:
+            resolved_categories = ["groceries", "dining", "transport"]
+
+        geo_ids = [f"{slug}-central", f"{slug}-north", f"{slug}-south"]
 
         rows: list[dict[str, Any]] = []
-        for index, geo_id in enumerate(geo_ids):
-            rows.append(
-                {
-                    "geo_id": geo_id,
-                    "country": resolved_country,
-                    "city": resolved_city,
-                    "population_total": base_population + (index * 20_000),
-                    "median_income": base_income + (index * 5_000),
-                    "age_distribution": None,
-                    "education_levels": None,
-                    "household_size_avg": None,
-                    "immigration_ratio": None,
-                    "coordinates": None,
-                }
-            )
+        base_spend_by_category = {
+            "groceries": 350.0,
+            "dining": 220.0,
+            "transport": 180.0,
+        }
+        default_base = 200.0
+
+        for geo_idx, geo_id in enumerate(geo_ids):
+            region_multiplier = 1.0 + (geo_idx * 0.07)
+            for cat_idx, category in enumerate(resolved_categories):
+                base = float(base_spend_by_category.get(category, default_base))
+                avg_monthly_spend = base * region_multiplier * (1.0 + (cat_idx * 0.03))
+                # Keep spend_index a simple ratio to the category base.
+                spend_index = avg_monthly_spend / base if base else None
+                rows.append(
+                    {
+                        "geo_id": geo_id,
+                        "country": resolved_country,
+                        "city": resolved_city,
+                        "category": category,
+                        "avg_monthly_spend": avg_monthly_spend,
+                        "spend_index": spend_index,
+                    }
+                )
 
         return rows
 
 
 @dataclass
-class DemographicsEtlResult:
-    """Result summary for a demographics ETL run."""
+class SpendingEtlResult:
+    """Result summary for a spending ETL run."""
 
     dataset_name: str
     status: str
@@ -124,31 +131,31 @@ class DemographicsEtlResult:
     city: str | None
 
 
-class DemographicsEtlJob:
-    """ETL job that loads demographics rows into the database."""
+class SpendingEtlJob:
+    """ETL job that loads spending rows into the database."""
 
     def __init__(
         self,
         *,
-        demographics_repository: DemographicsRepositoryProtocol,
+        spending_repository: SpendingRepositoryProtocol,
         data_freshness_repository: DataFreshnessRepositoryProtocol,
-        source_client: DemographicsSourceClient,
+        source_client: SpendingSourceClient,
         settings: Settings,
     ) -> None:
-        self._demographics_repository = demographics_repository
+        self._spending_repository = spending_repository
         self._data_freshness_repository = data_freshness_repository
         self._source_client = source_client
         self._settings = settings
 
     @classmethod
-    def create_default(cls) -> "DemographicsEtlJob":
+    def create_default(cls) -> "SpendingEtlJob":
         # TODO(architecture): Temporary local wiring. Move to a central
         # `dependencies`/bootstrap module once the ingestion worker runtime exists.
         settings = get_settings()
         return cls(
-            demographics_repository=DemographicsRepository(),
+            spending_repository=SpendingRepository(),
             data_freshness_repository=DataFreshnessRepository(),
-            source_client=LocalStubDemographicsSourceClient(),
+            source_client=LocalStubSpendingSourceClient(),
             settings=settings,
         )
 
@@ -159,14 +166,14 @@ class DemographicsEtlJob:
         country: str | None,
         city: str | None,
         options: dict[str, Any],
-    ) -> DemographicsEtlResult:
+    ) -> SpendingEtlResult:
         """
-        Execute one demographics ETL run.
+        Execute one spending ETL run.
 
         Fetches raw rows from the source client, upserts them, updates freshness,
         and records an `ETLLog`.
         """
-        dataset_name = "demographics"
+        dataset_name = "spending"
         now = datetime.now(timezone.utc)
         resolved_options = options
 
@@ -180,14 +187,14 @@ class DemographicsEtlJob:
                     "job": dataset_name,
                 },
             )
-            raw_rows = self._source_client.fetch_demographics(
+            raw_rows = self._source_client.fetch_spending(
                 country=country,
                 city=city,
                 options=resolved_options,
                 settings=self._settings,
             )
 
-            affected_rows = self._demographics_repository.upsert_many(
+            affected_rows = self._spending_repository.upsert_many(
                 db_session, raw_rows, last_updated=now
             )
 
@@ -211,8 +218,8 @@ class DemographicsEtlJob:
                     created_at=now.isoformat(),
                 )
             )
-
             db_session.flush()
+
             logger.info(
                 "ETL run completed",
                 extra={
@@ -223,7 +230,7 @@ class DemographicsEtlJob:
                     "status": "COMPLETED",
                 },
             )
-            return DemographicsEtlResult(
+            return SpendingEtlResult(
                 dataset_name=dataset_name,
                 status="COMPLETED",
                 row_count=affected_rows,
@@ -248,7 +255,6 @@ class DemographicsEtlJob:
                 row_count=0,
                 status="FAILED",
             )
-
             db_session.add(
                 ETLLog(
                     job_name=dataset_name,
